@@ -1,7 +1,9 @@
 import type { InferSelectModel } from "drizzle-orm";
 import {
   boolean,
+  date,
   foreignKey,
+  integer,
   json,
   pgTable,
   primaryKey,
@@ -168,3 +170,43 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const itinerary = pgTable("Itinerary", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  chatId: uuid("chatId")
+    .notNull()
+    .unique()
+    .references(() => chat.id),
+  tripName: text("tripName"),
+  destination: text("destination"),
+  startDate: date("startDate", { mode: "string" }),
+  endDate: date("endDate", { mode: "string" }),
+  adults: integer("adults").default(0),
+  children: integer("children").default(0),
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
+});
+
+export type Itinerary = InferSelectModel<typeof itinerary>;
+
+export const itineraryItem = pgTable("ItineraryItem", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  itineraryId: uuid("itineraryId")
+    .notNull()
+    .references(() => itinerary.id),
+  day: date("day", { mode: "string" }).notNull(),
+  timeBlock: varchar("timeBlock", {
+    enum: ["morning", "afternoon", "night"],
+  }).notNull(),
+  type: varchar("type", {
+    enum: ["activity", "accommodation", "transport", "meal"],
+  }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: text("price"),
+  imageUrl: text("imageUrl"),
+  sortOrder: integer("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").notNull(),
+});
+
+export type ItineraryItem = InferSelectModel<typeof itineraryItem>;

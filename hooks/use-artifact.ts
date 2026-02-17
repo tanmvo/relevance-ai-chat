@@ -2,7 +2,25 @@
 
 import { useCallback, useMemo } from "react";
 import useSWR from "swr";
-import type { UIArtifact } from "@/components/artifact";
+
+/**
+ * Minimal artifact state for backward compatibility. Artifacts are removed;
+ * this hook provides a stub so components that still reference it do not break.
+ */
+export type UIArtifact = {
+  documentId: string;
+  content: string;
+  kind: string;
+  title: string;
+  status: "streaming" | "idle";
+  isVisible: boolean;
+  boundingBox: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  };
+};
 
 export const initialArtifactData: UIArtifact = {
   documentId: "init",
@@ -67,23 +85,13 @@ export function useArtifact() {
     [setLocalArtifact]
   );
 
-  const { data: localArtifactMetadata, mutate: setLocalArtifactMetadata } =
-    useSWR<any>(
-      () =>
-        artifact.documentId ? `artifact-metadata-${artifact.documentId}` : null,
-      null,
-      {
-        fallbackData: null,
-      }
-    );
-
   return useMemo(
     () => ({
       artifact,
       setArtifact,
-      metadata: localArtifactMetadata,
-      setMetadata: setLocalArtifactMetadata,
+      metadata: null,
+      setMetadata: () => {},
     }),
-    [artifact, setArtifact, localArtifactMetadata, setLocalArtifactMetadata]
+    [artifact, setArtifact]
   );
 }

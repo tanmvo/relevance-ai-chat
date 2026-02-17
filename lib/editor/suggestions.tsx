@@ -6,13 +6,35 @@ import {
   type EditorView,
 } from "prosemirror-view";
 import { createRoot } from "react-dom/client";
-import type { ArtifactKind } from "@/components/artifact";
-import { Suggestion as PreviewSuggestion } from "@/components/suggestion";
+import type { ArtifactKind } from "@/lib/artifact-types";
 import type { Suggestion } from "@/lib/db/schema";
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;
   selectionEnd: number;
+}
+
+function SuggestionWidget({
+  onApply,
+  suggestion,
+}: {
+  artifactKind: ArtifactKind;
+  onApply: () => void;
+  suggestion: UISuggestion;
+}) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded border bg-muted px-2 py-0.5 text-sm">
+      <span className="text-muted-foreground">{suggestion.description ?? "Suggestion"}</span>
+      <button
+        className="text-primary underline"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={onApply}
+        type="button"
+      >
+        Apply
+      </button>
+    </div>
+  );
 }
 
 type Position = {
@@ -113,7 +135,7 @@ export function createSuggestionWidget(
   };
 
   root.render(
-    <PreviewSuggestion
+    <SuggestionWidget
       artifactKind={artifactKind}
       onApply={onApply}
       suggestion={suggestion}

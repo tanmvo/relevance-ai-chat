@@ -14,7 +14,6 @@ import {
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import type { ArtifactKind } from "@/components/artifact";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { ChatSDKError } from "../errors";
 import { generateUUID } from "../utils";
@@ -22,14 +21,15 @@ import {
   type Chat,
   chat,
   type DBMessage,
-  document,
   message,
-  type Suggestion,
   stream,
-  suggestion,
   type User,
   user,
   vote,
+  itinerary,
+  itineraryItem,
+  type Itinerary,
+  type ItineraryItem,
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
@@ -105,6 +105,16 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
+    const [existingItinerary] = await db
+      .select({ id: itinerary.id })
+      .from(itinerary)
+      .where(eq(itinerary.chatId, id));
+    if (existingItinerary) {
+      await db
+        .delete(itineraryItem)
+        .where(eq(itineraryItem.itineraryId, existingItinerary.id));
+      await db.delete(itinerary).where(eq(itinerary.chatId, id));
+    }
     await db.delete(vote).where(eq(vote.chatId, id));
     await db.delete(message).where(eq(message.chatId, id));
     await db.delete(stream).where(eq(stream.chatId, id));
@@ -134,7 +144,17 @@ export async function deleteAllChatsByUserId({ userId }: { userId: string }) {
     }
 
     const chatIds = userChats.map((c) => c.id);
-
+    const itinerariesForChats = await db
+      .select({ id: itinerary.id })
+      .from(itinerary)
+      .where(inArray(itinerary.chatId, chatIds));
+    const itineraryIds = itinerariesForChats.map((i) => i.id);
+    if (itineraryIds.length > 0) {
+      await db
+        .delete(itineraryItem)
+        .where(inArray(itineraryItem.itineraryId, itineraryIds));
+    }
+    await db.delete(itinerary).where(inArray(itinerary.chatId, chatIds));
     await db.delete(vote).where(inArray(vote.chatId, chatIds));
     await db.delete(message).where(inArray(message.chatId, chatIds));
     await db.delete(stream).where(inArray(stream.chatId, chatIds));
@@ -321,132 +341,6 @@ export async function getVotesByChatId({ id }: { id: string }) {
   }
 }
 
-export async function saveDocument({
-  id,
-  title,
-  kind,
-  content,
-  userId,
-}: {
-  id: string;
-  title: string;
-  kind: ArtifactKind;
-  content: string;
-  userId: string;
-}) {
-  try {
-    return await db
-      .insert(document)
-      .values({
-        id,
-        title,
-        kind,
-        content,
-        userId,
-        createdAt: new Date(),
-      })
-      .returning();
-  } catch (_error) {
-    throw new ChatSDKError("bad_request:database", "Failed to save document");
-  }
-}
-
-export async function getDocumentsById({ id }: { id: string }) {
-  try {
-    const documents = await db
-      .select()
-      .from(document)
-      .where(eq(document.id, id))
-      .orderBy(asc(document.createdAt));
-
-    return documents;
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to get documents by id"
-    );
-  }
-}
-
-export async function getDocumentById({ id }: { id: string }) {
-  try {
-    const [selectedDocument] = await db
-      .select()
-      .from(document)
-      .where(eq(document.id, id))
-      .orderBy(desc(document.createdAt));
-
-    return selectedDocument;
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to get document by id"
-    );
-  }
-}
-
-export async function deleteDocumentsByIdAfterTimestamp({
-  id,
-  timestamp,
-}: {
-  id: string;
-  timestamp: Date;
-}) {
-  try {
-    await db
-      .delete(suggestion)
-      .where(
-        and(
-          eq(suggestion.documentId, id),
-          gt(suggestion.documentCreatedAt, timestamp)
-        )
-      );
-
-    return await db
-      .delete(document)
-      .where(and(eq(document.id, id), gt(document.createdAt, timestamp)))
-      .returning();
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to delete documents by id after timestamp"
-    );
-  }
-}
-
-export async function saveSuggestions({
-  suggestions,
-}: {
-  suggestions: Suggestion[];
-}) {
-  try {
-    return await db.insert(suggestion).values(suggestions);
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to save suggestions"
-    );
-  }
-}
-
-export async function getSuggestionsByDocumentId({
-  documentId,
-}: {
-  documentId: string;
-}) {
-  try {
-    return await db
-      .select()
-      .from(suggestion)
-      .where(eq(suggestion.documentId, documentId));
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to get suggestions by document id"
-    );
-  }
-}
-
 export async function getMessageById({ id }: { id: string }) {
   try {
     return await db.select().from(message).where(eq(message.id, id));
@@ -524,8 +418,7 @@ export async function updateChatTitleById({
 }) {
   try {
     return await db.update(chat).set({ title }).where(eq(chat.id, chatId));
-  } catch (error) {
-    console.warn("Failed to update title for chat", chatId, error);
+  } catch (_error) {
     return;
   }
 }
@@ -597,6 +490,367 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get stream ids by chat id"
+    );
+  }
+}
+
+const now = () => new Date();
+
+export async function createItinerary({ chatId }: { chatId: string }) {
+  try {
+    const [created] = await db
+      .insert(itinerary)
+      .values({
+        chatId,
+        createdAt: now(),
+        updatedAt: now(),
+      })
+      .returning();
+    return created;
+  } catch (error) {
+    const cause =
+      error instanceof Error ? error.message : String(error);
+    throw new ChatSDKError(
+      "bad_request:database",
+      `Failed to create itinerary: ${cause}`
+    );
+  }
+}
+
+export async function getItineraryByChatId({
+  chatId,
+}: {
+  chatId: string;
+}): Promise<Itinerary | null> {
+  try {
+    const [row] = await db
+      .select()
+      .from(itinerary)
+      .where(eq(itinerary.chatId, chatId));
+    return row ?? null;
+  } catch (error) {
+    const cause =
+      error instanceof Error ? error.message : String(error);
+    throw new ChatSDKError(
+      "bad_request:database",
+      `Failed to get itinerary by chat id: ${cause}`
+    );
+  }
+}
+
+export async function getItineraryById({
+  id,
+}: {
+  id: string;
+}): Promise<Itinerary | null> {
+  try {
+    const [row] = await db.select().from(itinerary).where(eq(itinerary.id, id));
+    return row ?? null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get itinerary by id"
+    );
+  }
+}
+
+export async function updateItineraryMetadata({
+  id,
+  tripName,
+  destination,
+  startDate,
+  endDate,
+  adults,
+  children,
+}: {
+  id: string;
+  tripName?: string;
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+  adults?: number;
+  children?: number;
+}) {
+  try {
+    const updates: Partial<Itinerary> = { updatedAt: now() };
+    if (tripName !== undefined) {
+      updates.tripName = tripName;
+    }
+    if (destination !== undefined) {
+      updates.destination = destination;
+    }
+    if (startDate !== undefined) {
+      updates.startDate = startDate;
+    }
+    if (endDate !== undefined) {
+      updates.endDate = endDate;
+    }
+    if (adults !== undefined) {
+      updates.adults = adults;
+    }
+    if (children !== undefined) {
+      updates.children = children;
+    }
+    await db.update(itinerary).set(updates).where(eq(itinerary.id, id));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update itinerary metadata"
+    );
+  }
+}
+
+export async function addItineraryItem({
+  itineraryId,
+  day,
+  timeBlock,
+  type,
+  name,
+  description,
+  price,
+  imageUrl,
+  sortOrder,
+}: {
+  itineraryId: string;
+  day: string;
+  timeBlock: "morning" | "afternoon" | "night";
+  type: "activity" | "accommodation" | "transport" | "meal";
+  name: string;
+  description?: string;
+  price?: string;
+  imageUrl?: string;
+  sortOrder?: number;
+}) {
+  try {
+    await db.insert(itineraryItem).values({
+      itineraryId,
+      day,
+      timeBlock,
+      type,
+      name,
+      description,
+      price,
+      imageUrl,
+      sortOrder: sortOrder ?? 0,
+      createdAt: now(),
+    });
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to add itinerary item"
+    );
+  }
+}
+
+export async function removeItineraryItem({ id }: { id: string }) {
+  try {
+    await db.delete(itineraryItem).where(eq(itineraryItem.id, id));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to remove itinerary item"
+    );
+  }
+}
+
+export async function getItineraryItemsByItineraryId({
+  itineraryId,
+}: {
+  itineraryId: string;
+}): Promise<ItineraryItem[]> {
+  try {
+    return await db
+      .select()
+      .from(itineraryItem)
+      .where(eq(itineraryItem.itineraryId, itineraryId))
+      .orderBy(asc(itineraryItem.day), asc(itineraryItem.sortOrder));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get itinerary items"
+    );
+  }
+}
+
+export async function updateItineraryItem({
+  id,
+  day,
+  timeBlock,
+  type,
+  name,
+  description,
+  price,
+  imageUrl,
+  sortOrder,
+}: {
+  id: string;
+  day?: string;
+  timeBlock?: "morning" | "afternoon" | "night";
+  type?: "activity" | "accommodation" | "transport" | "meal";
+  name?: string;
+  description?: string;
+  price?: string;
+  imageUrl?: string;
+  sortOrder?: number;
+}) {
+  try {
+    const updates: Partial<ItineraryItem> = {};
+    if (day !== undefined) {
+      updates.day = day;
+    }
+    if (timeBlock !== undefined) {
+      updates.timeBlock = timeBlock;
+    }
+    if (type !== undefined) {
+      updates.type = type;
+    }
+    if (name !== undefined) {
+      updates.name = name;
+    }
+    if (description !== undefined) {
+      updates.description = description;
+    }
+    if (price !== undefined) {
+      updates.price = price;
+    }
+    if (imageUrl !== undefined) {
+      updates.imageUrl = imageUrl;
+    }
+    if (sortOrder !== undefined) {
+      updates.sortOrder = sortOrder;
+    }
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+    await db.update(itineraryItem).set(updates).where(eq(itineraryItem.id, id));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update itinerary item"
+    );
+  }
+}
+
+export async function setAccommodation({
+  itineraryId,
+  day,
+  timeBlock,
+  name,
+  description,
+  price,
+  imageUrl,
+}: {
+  itineraryId: string;
+  day: string;
+  timeBlock: "morning" | "afternoon" | "night";
+  name: string;
+  description?: string;
+  price?: string;
+  imageUrl?: string;
+}) {
+  try {
+    const existing = await db
+      .select()
+      .from(itineraryItem)
+      .where(
+        and(
+          eq(itineraryItem.itineraryId, itineraryId),
+          eq(itineraryItem.day, day),
+          eq(itineraryItem.timeBlock, timeBlock),
+          eq(itineraryItem.type, "accommodation")
+        )
+      )
+      .limit(1);
+    if (existing.length > 0) {
+      await db
+        .update(itineraryItem)
+        .set({
+          name,
+          description,
+          price,
+          imageUrl,
+        })
+        .where(eq(itineraryItem.id, existing[0].id));
+    } else {
+      await db.insert(itineraryItem).values({
+        itineraryId,
+        day,
+        timeBlock,
+        type: "accommodation",
+        name,
+        description,
+        price,
+        imageUrl,
+        sortOrder: 0,
+        createdAt: now(),
+      });
+    }
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to set accommodation"
+    );
+  }
+}
+
+export async function setTransport({
+  itineraryId,
+  day,
+  timeBlock,
+  name,
+  description,
+  price,
+  imageUrl,
+}: {
+  itineraryId: string;
+  day: string;
+  timeBlock: "morning" | "afternoon" | "night";
+  name: string;
+  description?: string;
+  price?: string;
+  imageUrl?: string;
+}) {
+  try {
+    const existing = await db
+      .select()
+      .from(itineraryItem)
+      .where(
+        and(
+          eq(itineraryItem.itineraryId, itineraryId),
+          eq(itineraryItem.day, day),
+          eq(itineraryItem.timeBlock, timeBlock),
+          eq(itineraryItem.type, "transport")
+        )
+      )
+      .limit(1);
+    if (existing.length > 0) {
+      await db
+        .update(itineraryItem)
+        .set({
+          name,
+          description,
+          price,
+          imageUrl,
+        })
+        .where(eq(itineraryItem.id, existing[0].id));
+    } else {
+      await db.insert(itineraryItem).values({
+        itineraryId,
+        day,
+        timeBlock,
+        type: "transport",
+        name,
+        description,
+        price,
+        imageUrl,
+        sortOrder: 0,
+        createdAt: now(),
+      });
+    }
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to set transport"
     );
   }
 }

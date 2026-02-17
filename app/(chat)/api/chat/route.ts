@@ -13,15 +13,13 @@ import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
+  createItinerary,
   createStreamId,
   deleteChatById,
   getChatById,
+  getItineraryByChatId,
   getMessageCountByUserId,
   getMessagesByChatId,
   saveChat,
@@ -99,6 +97,10 @@ export async function POST(request: Request) {
         title: "New chat",
         visibility: selectedVisibilityType,
       });
+      const existing = await getItineraryByChatId({ chatId: id });
+      if (!existing) {
+        await createItinerary({ chatId: id });
+      }
       titlePromise = generateTitleFromUserMessage({ message });
     }
 
@@ -144,14 +146,6 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: modelMessages,
           stopWhen: stepCountIs(5),
-          experimental_activeTools: isReasoningModel
-            ? []
-            : [
-                "getWeather",
-                "createDocument",
-                "updateDocument",
-                "requestSuggestions",
-              ],
           providerOptions: isReasoningModel
             ? {
                 anthropic: {
@@ -159,12 +153,7 @@ export async function POST(request: Request) {
                 },
               }
             : undefined,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({ session, dataStream }),
-          },
+          tools: {},
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
