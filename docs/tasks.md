@@ -53,11 +53,11 @@ Build the itinerary view as a second tab alongside the chat, mobile-first.
 
 Let the trip organizer share a read-only itinerary link with guests.
 
-- [ ] Create public itinerary route (`/itinerary/[id]`) — no auth required
-- [ ] Reuse itinerary view components from Phase 3 (hero, day cards, item cards)
-- [ ] Generate shareable link for each itinerary
-- [ ] Add "Share" action in the chat UI to copy the public link
-- [ ] Ensure public page has no chat access, no editing, no sidebar
+- [x] Create public itinerary route (`/itinerary/[id]`) — no auth required
+- [x] Reuse itinerary view components from Phase 3 (hero, day cards, item cards)
+- [x] Generate shareable link for each itinerary
+- [x] Add "Share" action in the chat UI to copy the public link
+- [x] Ensure public page has no chat access, no editing, no sidebar
 
 ---
 
