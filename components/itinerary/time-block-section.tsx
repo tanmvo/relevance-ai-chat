@@ -1,4 +1,4 @@
-import { CloudIcon, MoonIcon, SunIcon } from "lucide-react";
+import { MoonIcon, SunIcon } from "lucide-react";
 import type { ItineraryItem } from "@/lib/db/schema";
 import { ItineraryItemCard } from "./item-card";
 
@@ -7,12 +7,8 @@ const TIME_BLOCK_CONFIG = {
     label: "Morning",
     icon: SunIcon,
   },
-  afternoon: {
-    label: "Afternoon",
-    icon: CloudIcon,
-  },
-  night: {
-    label: "Night",
+  evening: {
+    label: "Evening",
     icon: MoonIcon,
   },
 } as const;
@@ -21,7 +17,7 @@ export function TimeBlockSection({
   timeBlock,
   items,
 }: {
-  timeBlock: "morning" | "afternoon" | "night";
+  timeBlock: "morning" | "evening";
   items: ItineraryItem[];
 }) {
   const config = TIME_BLOCK_CONFIG[timeBlock];

@@ -196,7 +196,7 @@ export const itineraryItem = pgTable("ItineraryItem", {
     .references(() => itinerary.id),
   day: date("day", { mode: "string" }).notNull(),
   timeBlock: varchar("timeBlock", {
-    enum: ["morning", "afternoon", "night"],
+    enum: ["morning", "evening"],
   }).notNull(),
   type: varchar("type", {
     enum: ["activity", "accommodation", "transport", "meal"],

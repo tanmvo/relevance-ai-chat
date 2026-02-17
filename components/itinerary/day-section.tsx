@@ -1,7 +1,7 @@
 import type { ItineraryItem } from "@/lib/db/schema";
 import { TimeBlockSection } from "./time-block-section";
 
-const TIME_BLOCKS = ["morning", "afternoon", "night"] as const;
+const TIME_BLOCKS = ["morning", "evening"] as const;
 
 function formatDayHeader(day: string, dayNumber: number) {
   const date = new Date(`${day}T00:00:00`);
@@ -38,7 +38,7 @@ export function DaySection({
         {formatDayHeader(day, dayNumber)}
       </h2>
 
-      <div className="flex flex-col gap-4 pl-2 md:pl-4">
+      <div className="flex flex-col gap-4 md:pl-4">
         {TIME_BLOCKS.map((block) => (
           <TimeBlockSection
             items={itemsByTimeBlock.get(block) ?? []}

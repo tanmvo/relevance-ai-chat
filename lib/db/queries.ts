@@ -613,7 +613,7 @@ export async function addItineraryItem({
 }: {
   itineraryId: string;
   day: string;
-  timeBlock: "morning" | "afternoon" | "night";
+  timeBlock: "morning" | "evening";
   type: "activity" | "accommodation" | "transport" | "meal";
   name: string;
   description?: string;
@@ -685,7 +685,7 @@ export async function updateItineraryItem({
 }: {
   id: string;
   day?: string;
-  timeBlock?: "morning" | "afternoon" | "night";
+  timeBlock?: "morning" | "evening";
   type?: "activity" | "accommodation" | "transport" | "meal";
   name?: string;
   description?: string;
@@ -742,7 +742,7 @@ export async function setAccommodation({
 }: {
   itineraryId: string;
   day: string;
-  timeBlock: "morning" | "afternoon" | "night";
+  timeBlock: "morning" | "evening";
   name: string;
   description?: string;
   price?: string;
@@ -804,7 +804,7 @@ export async function setTransport({
 }: {
   itineraryId: string;
   day: string;
-  timeBlock: "morning" | "afternoon" | "night";
+  timeBlock: "morning" | "evening";
   name: string;
   description?: string;
   price?: string;

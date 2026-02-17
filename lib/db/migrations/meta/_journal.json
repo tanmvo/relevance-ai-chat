@@ -71,6 +71,13 @@
       "when": 1768480000000,
       "tag": "0009_itinerary_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768560000000,
+      "tag": "0010_simplify_time_blocks",
+      "breakpoints": true
     }
   ]
 }

@@ -14,18 +14,18 @@ type ToolDeps = {
 export const setAccommodation = ({ chatId, dataStream }: ToolDeps) =>
   tool({
     description:
-      "Set or update accommodation for a specific night and time block. This upserts — if accommodation already exists for that day/timeBlock, it will be replaced. Typically use the 'night' time block for hotels.",
+      "Set or update accommodation for a specific day and time block. This upserts — if accommodation already exists for that day/timeBlock, it will be replaced. Typically use the 'evening' time block for hotels.",
     inputSchema: z.object({
       day: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format")
         .describe(
-          "The date for this accommodation (the night of), in YYYY-MM-DD format"
+          "The date for this accommodation (the evening of), in YYYY-MM-DD format"
         ),
       timeBlock: z
-        .enum(["morning", "afternoon", "night"])
+        .enum(["morning", "evening"])
         .describe(
-          "Time block — typically 'night' for hotel stays, 'morning' for check-out"
+          "Time block — typically 'evening' for hotel stays, 'morning' for check-out"
         ),
       name: z
         .string()

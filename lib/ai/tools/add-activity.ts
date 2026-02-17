@@ -18,8 +18,8 @@ export const addActivity = ({ chatId, dataStream }: ToolDeps) =>
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format")
         .describe("The date this activity belongs to, in YYYY-MM-DD format"),
       timeBlock: z
-        .enum(["morning", "afternoon", "night"])
-        .describe("Time of day: morning, afternoon, or night"),
+        .enum(["morning", "evening"])
+        .describe("Time of day: morning or evening"),
       type: z
         .enum(["activity", "meal"])
         .describe("Item type: activity (sightseeing, tours, etc.) or meal"),

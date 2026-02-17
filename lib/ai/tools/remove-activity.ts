@@ -28,7 +28,7 @@ export const removeActivity = ({ chatId, dataStream }: ToolDeps) =>
         .describe("Optional: the day the item is on, to disambiguate")
         .optional(),
       timeBlock: z
-        .enum(["morning", "afternoon", "night"])
+        .enum(["morning", "evening"])
         .describe("Optional: the time block the item is in, to disambiguate")
         .optional(),
     }),

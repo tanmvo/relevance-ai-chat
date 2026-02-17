@@ -21,7 +21,7 @@ export const setTransport = ({ chatId, dataStream }: ToolDeps) =>
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format")
         .describe("The date for this transport, in YYYY-MM-DD format"),
       timeBlock: z
-        .enum(["morning", "afternoon", "night"])
+        .enum(["morning", "evening"])
         .describe("Time of day for the transport"),
       transportType: z
         .enum(["flight", "train", "car", "bus"])
