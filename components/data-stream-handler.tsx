@@ -22,6 +22,11 @@ export function DataStreamHandler() {
       if (delta.type === "data-chat-title") {
         mutate(unstable_serialize(getChatHistoryPaginationKey));
       }
+
+      if (delta.type === "data-itinerary-update") {
+        // Phase 3 will wire this to SWR mutation to refresh the itinerary view.
+        // For now, the event is emitted by tools and consumed here as a placeholder.
+      }
     }
   }, [dataStream, setDataStream, mutate]);
 

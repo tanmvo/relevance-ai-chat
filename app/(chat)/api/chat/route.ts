@@ -13,6 +13,12 @@ import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
+import { addActivity } from "@/lib/ai/tools/add-activity";
+import { removeActivity } from "@/lib/ai/tools/remove-activity";
+import { setAccommodation } from "@/lib/ai/tools/set-accommodation";
+import { setTransport } from "@/lib/ai/tools/set-transport";
+import { updateTripMetadata } from "@/lib/ai/tools/update-trip-metadata";
+import { webSearch } from "@/lib/ai/tools/web-search";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createItinerary,
@@ -153,7 +159,17 @@ export async function POST(request: Request) {
                 },
               }
             : undefined,
-          tools: {},
+          tools: {
+            updateTripMetadata: updateTripMetadata({
+              chatId: id,
+              dataStream,
+            }),
+            addActivity: addActivity({ chatId: id, dataStream }),
+            removeActivity: removeActivity({ chatId: id, dataStream }),
+            setAccommodation: setAccommodation({ chatId: id, dataStream }),
+            setTransport: setTransport({ chatId: id, dataStream }),
+            webSearch,
+          },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
@@ -161,6 +177,11 @@ export async function POST(request: Request) {
         });
 
         dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
+
+        // Wait for the entire multi-step flow to complete before execute returns.
+        // Without this, the stream closes after step 1 (tool calls) and the model
+        // never gets a chance to process tool results and generate a text response.
+        await result.steps;
 
         if (titlePromise) {
           const title = await titlePromise;

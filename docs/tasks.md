@@ -23,13 +23,13 @@ Strip the existing chatbot down to what we need and lay the data foundation.
 
 Set up the trip planning persona, conversation directives, and granular tools.
 
-- [ ] Write system prompt — Alfred persona, conversation style lifecycle (ask-first → facilitator → proactive), trip planning context
-- [ ] Build granular itinerary tools — `addActivity`, `removeActivity`, `setAccommodation`, `setTransport`, `updateTripMetadata` (destination, dates, guest count)
-- [ ] Define Zod schemas for each tool's input
-- [ ] Build `webSearch` tool — destination-scoped research (events, activities, restaurants, seasonal info)
-- [ ] Register all new tools in the chat endpoint (`api/chat/route.ts`)
-- [ ] Remove old tool registrations
-- [ ] Test tool calls end-to-end — verify itinerary updates persist correctly
+- [x] Write system prompt — Alfred persona, conversation style lifecycle (ask-first → facilitator → proactive), trip planning context
+- [x] Build granular itinerary tools — `addActivity`, `removeActivity`, `setAccommodation`, `setTransport`, `updateTripMetadata` (destination, dates, guest count)
+- [x] Define Zod schemas for each tool's input
+- [x] Build `webSearch` tool — destination-scoped research via `gateway.tools.perplexitySearch()`
+- [x] Register all new tools in the chat endpoint (`api/chat/route.ts`)
+- [x] Remove old tool registrations (already done in Phase 1)
+- [X] Test tool calls end-to-end — verify itinerary updates persist correctly
 
 ---
 

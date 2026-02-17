@@ -7,11 +7,21 @@ import { cn, sanitizeText } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
+import { Tool, ToolContent, ToolHeader } from "./elements/tool";
 import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
+
+const toolDisplayNames: Record<string, string> = {
+  "tool-updateTripMetadata": "Updating trip details",
+  "tool-addActivity": "Adding activity",
+  "tool-removeActivity": "Removing activity",
+  "tool-setAccommodation": "Setting accommodation",
+  "tool-setTransport": "Setting transport",
+  "tool-webSearch": "Searching the web",
+};
 
 const PurePreviewMessage = ({
   addToolApprovalResponse: _addToolApprovalResponse,
@@ -155,6 +165,49 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
+            }
+
+            if (type.startsWith("tool-")) {
+              const toolPart = part as {
+                type: string;
+                toolCallId: string;
+                state: string;
+                input?: unknown;
+                output?: unknown;
+                errorText?: string;
+              };
+              const displayName =
+                toolDisplayNames[type] ?? type.replace("tool-", "");
+
+              return (
+                <div
+                  className="w-full"
+                  key={toolPart.toolCallId ?? key}
+                >
+                  <Tool defaultOpen={false}>
+                    <ToolHeader
+                      state={toolPart.state as "input-streaming" | "input-available" | "output-available" | "output-error"}
+                      type={displayName}
+                    />
+                    <ToolContent>
+                      {toolPart.state === "output-available" &&
+                        toolPart.output && (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            {typeof toolPart.output === "string"
+                              ? toolPart.output
+                              : JSON.stringify(toolPart.output, null, 2)}
+                          </div>
+                        )}
+                      {toolPart.state === "output-error" &&
+                        toolPart.errorText && (
+                          <div className="px-4 py-3 text-sm text-destructive">
+                            {toolPart.errorText}
+                          </div>
+                        )}
+                    </ToolContent>
+                  </Tool>
+                </div>
+              );
             }
 
             return null;
