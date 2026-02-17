@@ -37,15 +37,15 @@ Set up the trip planning persona, conversation directives, and granular tools.
 
 Build the itinerary view as a second tab alongside the chat, mobile-first.
 
-- [ ] Add tab system to chat page (Chat | Itinerary)
-- [ ] Build itinerary empty state (no trip details yet)
-- [ ] Build hero section component (trip name, destination, dates, guest count)
-- [ ] Build day section card component (collapsible or scrollable day cards)
-- [ ] Build time block layout within each day (Morning, Afternoon, Night)
-- [ ] Build itinerary item cards (activity, accommodation, transport, meal — with placeholder image, name, description, price)
-- [ ] Wire itinerary view to backend data (fetch itinerary for current chat)
-- [ ] Live updates — itinerary view refreshes when AI makes tool calls during chat
-- [ ] Mobile-first responsive styling across all new components
+- [x] Add tab system to chat page (Chat | Itinerary)
+- [x] Build itinerary empty state (no trip details yet)
+- [x] Build hero section component (trip name, destination, dates, guest count)
+- [x] Build day section card component (collapsible or scrollable day cards)
+- [x] Build time block layout within each day (Morning, Afternoon, Night)
+- [x] Build itinerary item cards (activity, accommodation, transport, meal — with placeholder image, name, description, price)
+- [x] Wire itinerary view to backend data (fetch itinerary for current chat)
+- [x] Live updates — itinerary view refreshes when AI makes tool calls during chat
+- [x] Mobile-first responsive styling across all new components
 
 ---
 

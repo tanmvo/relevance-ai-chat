@@ -5,4 +5,4 @@ Read these docs first:
 - @docs/tasks.md — the phased task list
 - @docs/phases/ — the phase notes
 
-Start working on Phase 3: Itinerary UI. Create a plan for the tasks listed, then give me a confidence score.
+Start working on Phase 4: Public Share. Create a plan for the tasks listed, then give me a confidence score.
