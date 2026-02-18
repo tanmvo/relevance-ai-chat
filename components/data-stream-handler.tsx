@@ -29,6 +29,13 @@ export function DataStreamHandler() {
             typeof key === "string" && key.startsWith("/api/itinerary")
         );
       }
+
+      if (delta.type === "data-poll-update") {
+        mutate(
+          (key: unknown) =>
+            typeof key === "string" && key.startsWith("/api/poll")
+        );
+      }
     }
   }, [dataStream, setDataStream, mutate]);
 

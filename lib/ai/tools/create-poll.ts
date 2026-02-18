@@ -15,6 +15,7 @@ export const createPoll = ({ chatId, dataStream }: ToolDeps) =>
   tool({
     description:
       "Create a poll to help the trip group decide between options (e.g., hotels, restaurants, activities). Pre-fill the question and 2-3 options from conversation context. The trip planner will review and confirm before the poll goes live.",
+    needsApproval: true,
     inputSchema: z.object({
       question: z
         .string()

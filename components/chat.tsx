@@ -8,6 +8,7 @@ import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
 import { ItineraryView } from "@/components/itinerary";
+import { PollsView } from "@/components/poll";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,7 @@ import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { cn, fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { ChatActionsProvider } from "./chat-actions-context";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
@@ -187,78 +189,94 @@ export function Chat({
 
   return (
     <>
-      <Tabs
-        className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background"
-        onValueChange={setActiveTab}
-        value={activeTab}
-      >
-        <ChatHeader
-          chatId={id}
-          isReadonly={isReadonly}
-          selectedVisibilityType={initialVisibilityType}
-        />
-
-        <div className="border-b bg-background px-2 py-1 md:px-4">
-          <TabsList className="w-full">
-            <TabsTrigger className="flex-1" value="chat">
-              Chat
-            </TabsTrigger>
-            <TabsTrigger className="flex-1" value="itinerary">
-              Itinerary
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col",
-            activeTab !== "chat" && "hidden"
-          )}
+      <ChatActionsProvider sendMessage={sendMessage} setActiveTab={setActiveTab}>
+        <Tabs
+          className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background"
+          onValueChange={setActiveTab}
+          value={activeTab}
         >
-          <Messages
-            addToolApprovalResponse={addToolApprovalResponse}
+          <ChatHeader
             chatId={id}
             isReadonly={isReadonly}
-            messages={messages}
-            regenerate={regenerate}
-            selectedModelId={initialChatModel}
-            setMessages={setMessages}
-            status={status}
-            votes={votes}
+            selectedVisibilityType={initialVisibilityType}
           />
 
-          <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-            {!isReadonly && (
-              <MultimodalInput
-                attachments={attachments}
-                chatId={id}
-                input={input}
-                messages={messages}
-                onModelChange={setCurrentModelId}
-                selectedModelId={currentModelId}
-                selectedVisibilityType={visibilityType}
-                sendMessage={sendMessage}
-                setAttachments={setAttachments}
-                setInput={setInput}
-                setMessages={setMessages}
-                status={status}
-                stop={stop}
-              />
-            )}
+          <div className="border-b bg-background px-2 py-1 md:px-4">
+            <TabsList className="w-full">
+              <TabsTrigger className="flex-1" value="chat">
+                Chat
+              </TabsTrigger>
+              <TabsTrigger className="flex-1" value="polls">
+                Polls
+              </TabsTrigger>
+              <TabsTrigger className="flex-1" value="itinerary">
+                Itinerary
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </div>
 
-        <div
-          className={cn(
-            "flex-1 overflow-y-auto",
-            activeTab !== "itinerary" && "hidden"
-          )}
-        >
-          <div className="mx-auto max-w-4xl">
-            <ItineraryView chatId={id} />
+          <div
+            className={cn(
+              "flex min-h-0 flex-1 flex-col",
+              activeTab !== "chat" && "hidden"
+            )}
+          >
+            <Messages
+              addToolApprovalResponse={addToolApprovalResponse}
+              chatId={id}
+              isReadonly={isReadonly}
+              messages={messages}
+              regenerate={regenerate}
+              selectedModelId={initialChatModel}
+              setMessages={setMessages}
+              status={status}
+              votes={votes}
+            />
+
+            <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+              {!isReadonly && (
+                <MultimodalInput
+                  attachments={attachments}
+                  chatId={id}
+                  input={input}
+                  messages={messages}
+                  onModelChange={setCurrentModelId}
+                  selectedModelId={currentModelId}
+                  selectedVisibilityType={visibilityType}
+                  sendMessage={sendMessage}
+                  setAttachments={setAttachments}
+                  setInput={setInput}
+                  setMessages={setMessages}
+                  status={status}
+                  stop={stop}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </Tabs>
+
+          <div
+            className={cn(
+              "flex-1 overflow-y-auto",
+              activeTab !== "polls" && "hidden"
+            )}
+          >
+            <div className="mx-auto max-w-4xl">
+              <PollsView chatId={id} />
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "flex-1 overflow-y-auto",
+              activeTab !== "itinerary" && "hidden"
+            )}
+          >
+            <div className="mx-auto max-w-4xl">
+              <ItineraryView chatId={id} />
+            </div>
+          </div>
+        </Tabs>
+      </ChatActionsProvider>
 
       <AlertDialog
         onOpenChange={setShowCreditCardAlert}

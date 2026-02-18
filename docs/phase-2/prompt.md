@@ -67,7 +67,7 @@ Start working on Step 3: Generative UI — Poll Components. This includes:
 - Building usePoll and usePolls SWR hooks
 - Adding DataStreamHandler listener for data-poll-update events
 
-Follow the existing patterns: hooks/use-itinerary.ts for SWR hooks, components/itinerary/ for component structure, and the AI SDK generative UI pattern (part.type === 'tool-createPoll' with input-available/output-available states). All components must be mobile-first. Create a plan for the tasks listed, then give me a confidence score.
+Follow the existing patterns: hooks/use-itinerary.ts for SWR hooks, components/itinerary/ for component structure, and the AI SDK generative UI pattern (part.type === 'tool-createPoll' with input-available/output-available states). All components must be mobile-first. Create a plan for the tasks listed, then give me a confidence score. I will review and then give you go ahead.
 ```
 
 ---
@@ -89,7 +89,7 @@ Start working on Step 4: Public Poll Page. This includes:
 - Building the voting form (name input, option selection, submit)
 - Building the post-vote results view (reuse PollSummaryCard or a read-only variant)
 
-Follow the existing pattern in app/(chat)/itinerary/[id]/page.tsx for the public page structure. Mobile-first. Create a plan for the tasks listed, then give me a confidence score.
+Follow the existing pattern in app/(chat)/itinerary/[id]/page.tsx for the public page structure. Mobile-first. Create a plan for the tasks listed, then give me a confidence score. I will review and then give you go ahead.
 ```
 
 ---
@@ -112,7 +112,7 @@ Start working on Step 5: Polls Tab. This includes:
 - Building the empty state
 - Building the bottom sheet detail view (Radix Sheet) that opens on tap
 
-Follow the existing tab pattern in components/chat.tsx and the itinerary tab implementation. Wire data to the usePolls hook from Step 3. Mobile-first. Create a plan for the tasks listed, then give me a confidence score.
+Follow the existing tab pattern in components/chat.tsx and the itinerary tab implementation. Wire data to the usePolls hook from Step 3. Mobile-first. Create a plan for the tasks listed, then give me a confidence score. I will review and then give you go ahead.
 ```
 
 ---
@@ -135,5 +135,5 @@ Start working on Step 6: Submit to Agent Flow. This includes:
 - Transitioning PollSummaryCard to submitted state after submission
 - Verifying the agent processes results correctly (auto-update for decisive, follow-up for ambiguous)
 
-The key design decision: poll results are injected as a regular user message into the chat. The agent picks it up on the next turn and uses existing itinerary tools to act on it. Create a plan for the tasks listed, then give me a confidence score.
+The key design decision: poll results are injected as a regular user message into the chat. The agent picks it up on the next turn and uses existing itinerary tools to act on it. Create a plan for the tasks listed, then give me a confidence score. I will review and then give you go ahead.
 ```

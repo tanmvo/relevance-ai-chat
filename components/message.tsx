@@ -12,6 +12,7 @@ import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
+import { PollCreationCard, PollSummaryCard } from "./poll";
 import { PreviewAttachment } from "./preview-attachment";
 
 const toolDisplayNames: Record<string, string> = {
@@ -24,7 +25,7 @@ const toolDisplayNames: Record<string, string> = {
 };
 
 const PurePreviewMessage = ({
-  addToolApprovalResponse: _addToolApprovalResponse,
+  addToolApprovalResponse,
   chatId,
   message,
   vote,
@@ -165,6 +166,38 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
+            }
+
+            if (type === "tool-createPoll") {
+              const toolPart = part as {
+                type: string;
+                toolCallId: string;
+                state: string;
+                input?: { question: string; options: Array<{ label: string; description?: string }> };
+                output?: { success: boolean; pollId?: string; question?: string; options?: Array<{ id: string; label: string; description: string | null }>; shareUrl?: string; error?: string };
+                approval?: { id: string; approved?: boolean; reason?: string };
+                errorText?: string;
+              };
+
+              if (toolPart.state === "output-available" && toolPart.output && "pollId" in toolPart.output && toolPart.output.pollId) {
+                return (
+                  <div className="w-full" key={toolPart.toolCallId ?? key}>
+                    <PollSummaryCard pollId={toolPart.output.pollId} />
+                  </div>
+                );
+              }
+
+              return (
+                <div className="w-full" key={toolPart.toolCallId ?? key}>
+                  <PollCreationCard
+                    addToolApprovalResponse={addToolApprovalResponse}
+                    approval={toolPart.approval}
+                    input={toolPart.input}
+                    output={toolPart.output as Parameters<typeof PollCreationCard>[0]["output"]}
+                    state={toolPart.state}
+                  />
+                </div>
+              );
             }
 
             if (type.startsWith("tool-")) {

@@ -1,6 +1,7 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
 import type { addActivity } from "./ai/tools/add-activity";
+import type { createPoll } from "./ai/tools/create-poll";
 import type { removeActivity } from "./ai/tools/remove-activity";
 import type { setAccommodation } from "./ai/tools/set-accommodation";
 import type { setTransport } from "./ai/tools/set-transport";
@@ -20,11 +21,13 @@ export type ChatTools = {
   removeActivity: InferUITool<ReturnType<typeof removeActivity>>;
   setAccommodation: InferUITool<ReturnType<typeof setAccommodation>>;
   setTransport: InferUITool<ReturnType<typeof setTransport>>;
+  createPoll: InferUITool<ReturnType<typeof createPoll>>;
 };
 
 export type CustomUIDataTypes = {
   "chat-title": string;
   "itinerary-update": string;
+  "poll-update": string;
 };
 
 export type ChatMessage = UIMessage<

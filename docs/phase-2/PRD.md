@@ -79,15 +79,18 @@ The polls feature adds a **third tab** to the chat page and a **new public page*
 
 ### 2.3 — Poll Creation Component
 
-Renders inline in the chat as a generative UI element (AI SDK tool part).
+Renders inline in the chat as a generative UI element (AI SDK tool part). Uses the **AI SDK tool approval flow** (`needsApproval: true`) to give the trip planner a preview before the poll is created.
 
-**Configuring State:**
-- Poll question (editable text input)
+**Configuring State (approval-requested):**
+- Poll question (read-only preview of AI's suggestion)
 - Poll type indicator (multiple choice, pick one)
-- Options list (2-3 options, each with editable label + optional description)
-- "Create Poll" button
+- Options list (2-3 options, each showing label + optional description as read-only preview)
+- "Create Poll" button (approves the tool call, triggering execution)
+- "Deny" button (rejects — the trip planner can ask the AI to suggest different options)
 
-**Created State:**
+> **Design decision:** Fields are read-only in the configuring state. The `createPoll` tool uses `needsApproval: true`, which pauses execution until the user approves. Editing is handled conversationally — if the trip planner doesn't like the suggestions, they deny and ask Alfred to adjust. This leverages the existing tool approval infrastructure (`addToolApprovalResponse`, `sendAutomaticallyWhen`) already wired in the codebase.
+
+**Created State (output-available):**
 - Poll question (read-only)
 - Options summary
 - Share link with copy-to-clipboard button
@@ -315,8 +318,9 @@ This feature builds on the existing codebase. Key implementation notes:
 
 | Aspect | Detail |
 |---|---|
-| **Generative UI** | AI SDK tool calls return data that maps to React components via `tool-createPoll` message parts. Uses `input-available` / `output-available` states. |
-| **Component rendering** | Poll creation and summary components render inline in the chat message stream. The chat message renderer checks `part.type === 'tool-createPoll'` and renders the appropriate component based on `part.state`. |
+| **Generative UI** | AI SDK tool calls return data that maps to React components via `tool-createPoll` message parts. Uses the **tool approval flow** (`needsApproval: true`): `approval-requested` for the configuring preview, `output-available` for the created state. |
+| **Tool approval** | The `createPoll` tool uses `needsApproval: true`. The tool pauses at `approval-requested` state, showing the AI's suggested question and options. The user approves (creating the poll) or denies (asking the AI to adjust). The existing `addToolApprovalResponse` and `sendAutomaticallyWhen` infrastructure in `chat.tsx` handles the flow. |
+| **Component rendering** | Poll creation and summary components render inline in the chat message stream. The chat message renderer checks `part.type === 'tool-createPoll'` before the generic `tool-*` handler, routing to `PollCreationCard` (approval states) or `PollSummaryCard` (output-available with pollId). |
 | **Live results** | SWR polling with `refreshInterval: 5000` via a `usePoll` hook. Same pattern as `useItinerary`. |
 | **Tab system** | Extends existing Radix tabs. All three tabs (Chat, Polls, Itinerary) stay mounted via CSS toggle to preserve state. |
 | **Submit to agent** | Poll results injected as a user message into the chat. The agent processes it in the next turn using existing itinerary tools. |
