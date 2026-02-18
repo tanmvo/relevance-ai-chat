@@ -1,5 +1,7 @@
 import { motion } from "motion/react";
 
+import { TrippityIcon } from "@/components/icons";
+
 export const Greeting = () => {
   return (
     <div
@@ -8,12 +10,13 @@ export const Greeting = () => {
     >
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="font-semibold text-xl md:text-2xl"
+        className="flex flex-col items-start gap-2 font-semibold text-xl md:text-2xl"
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.5 }}
       >
-        Hello there!
+        <TrippityIcon size={28} />
+        Hello,
       </motion.div>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
@@ -22,7 +25,7 @@ export const Greeting = () => {
         initial={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.6 }}
       >
-        How can I help you today?
+        Let&apos;s plan your next getaway.
       </motion.div>
     </div>
   );
