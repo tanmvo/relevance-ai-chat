@@ -6,6 +6,7 @@ import {
   CheckIcon,
   CircleDotIcon,
   ClockIcon,
+  GlobeIcon,
   MapPinIcon,
   SparklesIcon,
   TagIcon,
@@ -20,7 +21,13 @@ import { useChatActions } from "./chat-actions-context";
 type Suggestion = {
   title: string;
   description?: string;
-  type?: "activity" | "meal" | "accommodation" | "transport" | "experience";
+  type?:
+    | "activity"
+    | "meal"
+    | "accommodation"
+    | "transport"
+    | "experience"
+    | "destination";
   estimatedPrice?: string;
   duration?: string;
 };
@@ -66,6 +73,11 @@ const typeConfig: Record<
     icon: <SparklesIcon className="size-3.5" />,
     label: "Experience",
     color: "bg-pink-500/10 text-pink-700 dark:text-pink-400",
+  },
+  destination: {
+    icon: <GlobeIcon className="size-3.5" />,
+    label: "Destination",
+    color: "bg-teal-500/10 text-teal-700 dark:text-teal-400",
   },
 };
 

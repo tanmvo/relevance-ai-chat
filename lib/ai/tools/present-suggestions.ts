@@ -3,12 +3,12 @@ import { z } from "zod";
 
 export const presentSuggestions = tool({
   description:
-    "Present 2-4 suggestion options to the trip planner as an interactive card. Use this when offering activity, restaurant, accommodation, or experience choices for a specific day or decision point. The organizer can select their preferred option directly from the card.",
+    "ALWAYS use this tool instead of listing options in plain text. Present 2-4 options as an interactive card the trip planner can tap to choose from. Use this for ANY kind of choice: destinations, travel dates, weekend options, travel style preferences, activities, restaurants, hotels, transport — whenever the organizer needs to pick between discrete options.",
   inputSchema: z.object({
     context: z
       .string()
       .describe(
-        "Brief context about what the suggestions are for, e.g. 'Day 1 morning activities in Kyoto'"
+        "Brief heading describing the choice, e.g. 'Weekend options for Hobart', 'Day 1 morning activities in Kyoto', 'Destination ideas for a beach holiday'"
       ),
     suggestions: z
       .array(
@@ -16,13 +16,13 @@ export const presentSuggestions = tool({
           title: z
             .string()
             .describe(
-              "Name of the suggestion, e.g. 'Fushimi Inari Shrine'"
+              "The option label, e.g. 'Fushimi Inari Shrine', 'March 7–9', 'Bali, Indonesia'"
             ),
           description: z
             .string()
             .max(80)
             .describe(
-              "One short sentence (max 80 chars) summarizing the option, e.g. 'Iconic hilltop shrine with thousands of vermillion torii gates'"
+              "One short sentence (max 80 chars) with helpful context, e.g. 'Friday–Sunday, warm weather expected'"
             )
             .optional(),
           type: z
@@ -32,8 +32,9 @@ export const presentSuggestions = tool({
               "accommodation",
               "transport",
               "experience",
+              "destination",
             ])
-            .describe("Category of the suggestion")
+            .describe("Category of the suggestion, if applicable")
             .optional(),
           estimatedPrice: z
             .string()
@@ -43,13 +44,13 @@ export const presentSuggestions = tool({
             .optional(),
           duration: z
             .string()
-            .describe("Estimated duration, e.g. '2-3 hours'")
+            .describe("Estimated duration if applicable, e.g. '2-3 hours'")
             .optional(),
         })
       )
       .min(2)
       .max(4)
-      .describe("2-4 suggestion options to present"),
+      .describe("2-4 options to present"),
   }),
   execute: async (input) => ({
     context: input.context,
