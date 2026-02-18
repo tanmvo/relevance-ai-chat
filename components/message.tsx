@@ -16,6 +16,7 @@ import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PollCreationCard, PollSummaryCard } from "./poll";
 import { PreviewAttachment } from "./preview-attachment";
+import { SuggestionPickerCard } from "./suggestion-picker";
 
 const toolLabels: Record<string, string> = {
   "tool-updateTripMetadata": "Updating trip details",
@@ -140,7 +141,7 @@ const PurePreviewMessage = ({
       }
     };
 
-    const customToolTypes = new Set(["tool-createPoll"]);
+    const customToolTypes = new Set(["tool-createPoll", "tool-presentSuggestions"]);
 
     const rendersContent = (p: MessagePart): boolean => {
       if (p.type === "text") {
@@ -336,6 +337,45 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
+            }
+
+            if (type === "tool-presentSuggestions") {
+              const toolPart = part as {
+                type: string;
+                toolCallId: string;
+                state: string;
+                input?: {
+                  context: string;
+                  suggestions: Array<{
+                    title: string;
+                    description?: string;
+                    type?: "activity" | "meal" | "accommodation" | "transport" | "experience";
+                    estimatedPrice?: string;
+                    duration?: string;
+                  }>;
+                };
+                output?: {
+                  context: string;
+                  suggestions: Array<{
+                    title: string;
+                    description?: string;
+                    type?: "activity" | "meal" | "accommodation" | "transport" | "experience";
+                    estimatedPrice?: string;
+                    duration?: string;
+                  }>;
+                };
+              };
+
+              return (
+                <div className="w-full" key={toolPart.toolCallId ?? key}>
+                  <SuggestionPickerCard
+                    input={toolPart.input}
+                    output={toolPart.output}
+                    state={toolPart.state}
+                    toolCallId={toolPart.toolCallId}
+                  />
+                </div>
+              );
             }
 
             if (type === "tool-createPoll") {

@@ -20,6 +20,7 @@ import { setTransport } from "@/lib/ai/tools/set-transport";
 import { updateTripMetadata } from "@/lib/ai/tools/update-trip-metadata";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { createPoll } from "@/lib/ai/tools/create-poll";
+import { presentSuggestions } from "@/lib/ai/tools/present-suggestions";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createItinerary,
@@ -171,6 +172,7 @@ export async function POST(request: Request) {
             setTransport: setTransport({ chatId: id, dataStream }),
             webSearch,
             createPoll: createPoll({ chatId: id, dataStream }),
+            presentSuggestions,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
