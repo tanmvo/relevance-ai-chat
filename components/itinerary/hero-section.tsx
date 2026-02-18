@@ -10,6 +10,7 @@ function formatDateRange(startDate: string | null, endDate: string | null) {
 
   const start = new Date(`${startDate}T00:00:00`);
   const formatOpts: Intl.DateTimeFormatOptions = {
+    weekday: "short",
     month: "short",
     day: "numeric",
   };
@@ -24,9 +25,11 @@ function formatDateRange(startDate: string | null, endDate: string | null) {
   const sameMonth = start.getMonth() === end.getMonth();
   const sameYear = start.getFullYear() === end.getFullYear();
 
-  const endOpts: Intl.DateTimeFormatOptions = sameMonth
-    ? { day: "numeric" }
-    : { month: "short", day: "numeric" };
+  const endOpts: Intl.DateTimeFormatOptions = {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  };
 
   const endStr = end.toLocaleDateString("en-US", endOpts);
   const year = end.getFullYear();
@@ -65,7 +68,7 @@ export function HeroSection({
   const hasAnyDetail = itinerary.destination || dateRange || guestCount;
 
   return (
-    <Card className="border-none bg-gradient-to-br from-primary/5 to-primary/10 shadow-none">
+    <Card className="border-none bg-muted shadow-none">
       <CardContent className="flex flex-col gap-3 p-4 md:p-6">
         <div className="flex items-start justify-between gap-2">
           <h1 className="text-xl font-bold md:text-2xl">{title}</h1>
@@ -73,7 +76,7 @@ export function HeroSection({
         </div>
 
         {hasAnyDetail && (
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
             {itinerary.destination && (
               <div className="flex items-center gap-2">
                 <MapPinIcon className="size-4 shrink-0" />

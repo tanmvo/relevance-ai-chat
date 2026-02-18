@@ -66,13 +66,16 @@ export function ItineraryItemCard({
     : { subType: null, displayName: item.name };
 
   const badgeLabel = subType ? `${config.label} — ${subType}` : config.label;
-  const hasPrice = Boolean(item.price);
+  const isFree = item.price
+    ? /free/i.test(item.price)
+    : false;
+  const isBookable = Boolean(item.price) && !isFree;
 
   return (
     <Card className="group shadow-none transition-colors hover:bg-muted/30">
       <CardContent className="flex gap-3 p-3 md:p-4">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted md:size-12">
-          <Icon className="size-5 text-muted-foreground md:size-6" />
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+          <Icon className="size-4 text-muted-foreground" />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -102,7 +105,7 @@ export function ItineraryItemCard({
             </p>
           )}
 
-          {hasPrice && !booked && (
+          {isBookable && !booked && (
             <Button
               className="mt-1 h-7 w-fit gap-1.5 px-3 text-xs"
               onClick={() => setBooked(true)}

@@ -38,10 +38,10 @@ export function ShareButton({ chatId, className }: { chatId: string; className?:
       <TooltipTrigger asChild>
         <Button
           aria-label={copied ? "Link copied" : "Copy shareable link"}
-          className={cn(className)}
+          className={cn("size-7", className)}
           disabled={copied}
           onClick={handleCopy}
-          size="sm"
+          size="icon"
           type="button"
           variant="outline"
         >
