@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { memo } from "react";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
+import { useItinerary } from "@/hooks/use-itinerary";
 import type { Chat } from "@/lib/db/schema";
 import {
   CheckCircleFillIcon,
@@ -42,11 +43,15 @@ const PureChatItem = ({
     initialVisibilityType: chat.visibility,
   });
 
+  const { itinerary } = useItinerary(chat.id);
+  const displayName =
+    itinerary?.tripName || itinerary?.destination || "New Trip";
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
         <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
-          <span>{chat.title}</span>
+          <span>{displayName}</span>
         </Link>
       </SidebarMenuButton>
 

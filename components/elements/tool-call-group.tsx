@@ -35,23 +35,19 @@ const stepIcon: Record<string, ReactNode> = {
   "output-available": (
     <CheckCircleIcon className="size-3 shrink-0 text-green-600" />
   ),
-  "output-error": (
-    <XCircleIcon className="size-3 shrink-0 text-red-600" />
-  ),
+  "output-error": <XCircleIcon className="size-3 shrink-0 text-red-600" />,
 };
 
 type ToolCallGroupProps = {
   parts: ToolCallPart[];
-  getDisplayName: (type: string) => string;
+  getDisplayName: (part: ToolCallPart) => string;
 };
 
 export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
   const completedCount = parts.filter(
     (p) => p.state === "output-available"
   ).length;
-  const errorCount = parts.filter(
-    (p) => p.state === "output-error"
-  ).length;
+  const errorCount = parts.filter((p) => p.state === "output-error").length;
   const isAllDone = completedCount + errorCount === parts.length;
 
   let summaryText: string;
@@ -74,7 +70,7 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
         ) : (
           <WrenchIcon className="size-4 shrink-0 animate-pulse text-muted-foreground" />
         )}
-        <span className="flex-1 text-left font-medium text-muted-foreground">
+        <span className="flex-1 text-left text-xs font-medium text-muted-foreground">
           {summaryText}
         </span>
         <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]/tools:rotate-180" />
@@ -83,8 +79,8 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
         <div className="ml-2 mt-1 space-y-0.5 border-l border-border pl-3">
           {parts.map((part, i) => (
             <div
-              key={part.toolCallId ?? i}
               className="flex items-center gap-2 py-0.5 text-sm fade-in animate-in duration-150"
+              key={part.toolCallId ?? i}
             >
               {stepIcon[part.state] ?? (
                 <CircleIcon className="size-3 shrink-0 text-muted-foreground/50" />
@@ -97,7 +93,7 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
                     : "text-muted-foreground"
                 )}
               >
-                {getDisplayName(part.type)}
+                {getDisplayName(part)}
               </span>
             </div>
           ))}

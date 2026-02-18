@@ -1,10 +1,7 @@
-import {
-  CalendarIcon,
-  MapPinIcon,
-  UsersIcon,
-} from "lucide-react";
-import type { Itinerary } from "@/lib/db/schema";
+import { CalendarIcon, MapPinIcon, UsersIcon } from "lucide-react";
+import { ShareButton } from "@/components/share-button";
 import { Card, CardContent } from "@/components/ui/card";
+import type { Itinerary } from "@/lib/db/schema";
 
 function formatDateRange(startDate: string | null, endDate: string | null) {
   if (!startDate) {
@@ -54,19 +51,26 @@ function formatGuestCount(adults: number | null, children: number | null) {
   return parts.length > 0 ? parts.join(", ") : null;
 }
 
-export function HeroSection({ itinerary }: { itinerary: Itinerary }) {
-  const title =
-    itinerary.tripName || itinerary.destination || "Untitled Trip";
+export function HeroSection({
+  itinerary,
+  chatId,
+}: {
+  itinerary: Itinerary;
+  chatId?: string;
+}) {
+  const title = itinerary.tripName || itinerary.destination || "Untitled Trip";
   const dateRange = formatDateRange(itinerary.startDate, itinerary.endDate);
   const guestCount = formatGuestCount(itinerary.adults, itinerary.children);
 
-  const hasAnyDetail =
-    itinerary.destination || dateRange || guestCount;
+  const hasAnyDetail = itinerary.destination || dateRange || guestCount;
 
   return (
     <Card className="border-none bg-gradient-to-br from-primary/5 to-primary/10 shadow-none">
       <CardContent className="flex flex-col gap-3 p-4 md:p-6">
-        <h1 className="text-xl font-bold md:text-2xl">{title}</h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-bold md:text-2xl">{title}</h1>
+          {chatId && <ShareButton chatId={chatId} />}
+        </div>
 
         {hasAnyDetail && (
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">

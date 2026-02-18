@@ -7,18 +7,16 @@ import { cn, sanitizeText } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
-import {
-  ToolCallGroup,
-  type ToolCallPart,
-} from "./elements/tool-call-group";
+import { ToolCallGroup, type ToolCallPart } from "./elements/tool-call-group";
 import { SparklesIcon } from "./icons";
+import { ViewItineraryButton } from "./itinerary/itinerary-actions";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PollCreationCard, PollSummaryCard } from "./poll";
 import { PreviewAttachment } from "./preview-attachment";
 
-const toolDisplayNames: Record<string, string> = {
+const toolLabels: Record<string, string> = {
   "tool-updateTripMetadata": "Updating trip details",
   "tool-addActivity": "Adding activity",
   "tool-removeActivity": "Removing activity",
@@ -26,6 +24,65 @@ const toolDisplayNames: Record<string, string> = {
   "tool-setTransport": "Setting transport",
   "tool-webSearch": "Searching the web",
 };
+
+const ITINERARY_TOOL_TYPES = new Set([
+  "tool-updateTripMetadata",
+  "tool-addActivity",
+  "tool-removeActivity",
+  "tool-setAccommodation",
+  "tool-setTransport",
+]);
+
+function getToolDisplayName(part: ToolCallPart): string {
+  const label = toolLabels[part.type] ?? part.type.replace("tool-", "");
+  const input = part.input as Record<string, unknown> | undefined;
+  if (!input) {
+    return label;
+  }
+
+  switch (part.type) {
+    case "tool-addActivity":
+    case "tool-removeActivity":
+    case "tool-setAccommodation":
+    case "tool-setTransport": {
+      const name = input.name;
+      if (typeof name === "string" && name.length > 0) {
+        return `${label}: ${name}`;
+      }
+      return label;
+    }
+    case "tool-updateTripMetadata": {
+      const fields = [
+        "tripName",
+        "destination",
+        "startDate",
+        "endDate",
+        "adults",
+        "children",
+      ].filter((key) => input[key] !== undefined);
+      if (fields.length > 0) {
+        const keyToLabel: Record<string, string> = {
+          tripName: "trip name",
+          startDate: "start date",
+          endDate: "end date",
+        };
+        const readable = fields.map((f) => keyToLabel[f] ?? f);
+        return `${label}: ${readable.join(", ")}`;
+      }
+      return label;
+    }
+    case "tool-webSearch": {
+      const query = input.query;
+      if (typeof query === "string" && query.length > 0) {
+        const truncated = query.length > 60 ? `${query.slice(0, 57)}…` : query;
+        return `${label}: ${truncated}`;
+      }
+      return label;
+    }
+    default:
+      return label;
+  }
+}
 
 const PurePreviewMessage = ({
   addToolApprovalResponse,
@@ -83,6 +140,22 @@ const PurePreviewMessage = ({
 
     const customToolTypes = new Set(["tool-createPoll"]);
 
+    const rendersContent = (p: MessagePart): boolean => {
+      if (p.type === "text") {
+        return "text" in p && Boolean(String(p.text ?? "").trim());
+      }
+      if (p.type === "reasoning") {
+        return "text" in p && Boolean(String(p.text ?? "").trim());
+      }
+      if (p.type === "file") {
+        return true;
+      }
+      if (customToolTypes.has(p.type)) {
+        return true;
+      }
+      return false;
+    };
+
     message.parts.forEach((part, index) => {
       if (part.type.startsWith("tool-") && !customToolTypes.has(part.type)) {
         if (toolBuffer.length === 0) {
@@ -90,6 +163,9 @@ const PurePreviewMessage = ({
         }
         toolBuffer.push(part as unknown as ToolCallPart);
       } else {
+        if (!rendersContent(part)) {
+          return;
+        }
         flushTools();
         result.push({ kind: "part", part, index });
       }
@@ -99,6 +175,19 @@ const PurePreviewMessage = ({
     return result;
   }, [message.parts]);
 
+  const showViewItinerary = useMemo(
+    () =>
+      groupedParts.some(
+        (g) =>
+          g.kind === "tool-group" &&
+          g.parts.some((p) => ITINERARY_TOOL_TYPES.has(p.type)) &&
+          g.parts.every(
+            (p) => p.state === "output-available" || p.state === "output-error"
+          )
+      ),
+    [groupedParts]
+  );
+
   return (
     <div
       className="group/message fade-in w-full animate-in duration-200"
@@ -106,13 +195,13 @@ const PurePreviewMessage = ({
       data-testid={`message-${message.role}`}
     >
       <div
-        className={cn("flex w-full items-start gap-2 md:gap-3", {
+        className={cn("flex w-full items-start gap-3 md:gap-4", {
           "justify-end": message.role === "user" && mode !== "edit",
           "justify-start": message.role === "assistant",
         })}
       >
         {message.role === "assistant" && (
-          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <div className="-mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
             <SparklesIcon size={14} />
           </div>
         )}
@@ -155,9 +244,7 @@ const PurePreviewMessage = ({
             if (group.kind === "tool-group") {
               return (
                 <ToolCallGroup
-                  getDisplayName={(type) =>
-                    toolDisplayNames[type] ?? type.replace("tool-", "")
-                  }
+                  getDisplayName={getToolDisplayName}
                   key={`tool-group-${group.startIndex}`}
                   parts={group.parts}
                 />
@@ -188,7 +275,7 @@ const PurePreviewMessage = ({
                   <div key={key}>
                     <MessageContent
                       className={cn({
-                        "wrap-break-word w-fit rounded-2xl px-3 py-2 text-right text-white":
+                        "wrap-break-word w-fit rounded-2xl px-3 py-2 text-left text-white":
                           message.role === "user",
                         "bg-transparent px-0 py-0 text-left":
                           message.role === "assistant",
@@ -232,13 +319,32 @@ const PurePreviewMessage = ({
                 type: string;
                 toolCallId: string;
                 state: string;
-                input?: { question: string; options: Array<{ label: string; description?: string }> };
-                output?: { success: boolean; pollId?: string; question?: string; options?: Array<{ id: string; label: string; description: string | null }>; shareUrl?: string; error?: string };
+                input?: {
+                  question: string;
+                  options: Array<{ label: string; description?: string }>;
+                };
+                output?: {
+                  success: boolean;
+                  pollId?: string;
+                  question?: string;
+                  options?: Array<{
+                    id: string;
+                    label: string;
+                    description: string | null;
+                  }>;
+                  shareUrl?: string;
+                  error?: string;
+                };
                 approval?: { id: string; approved?: boolean; reason?: string };
                 errorText?: string;
               };
 
-              if (toolPart.state === "output-available" && toolPart.output && "pollId" in toolPart.output && toolPart.output.pollId) {
+              if (
+                toolPart.state === "output-available" &&
+                toolPart.output &&
+                "pollId" in toolPart.output &&
+                toolPart.output.pollId
+              ) {
                 return (
                   <div className="w-full" key={toolPart.toolCallId ?? key}>
                     <PollSummaryCard pollId={toolPart.output.pollId} />
@@ -252,7 +358,11 @@ const PurePreviewMessage = ({
                     addToolApprovalResponse={addToolApprovalResponse}
                     approval={toolPart.approval}
                     input={toolPart.input}
-                    output={toolPart.output as Parameters<typeof PollCreationCard>[0]["output"]}
+                    output={
+                      toolPart.output as Parameters<
+                        typeof PollCreationCard
+                      >[0]["output"]
+                    }
                     state={toolPart.state}
                   />
                 </div>
@@ -260,6 +370,8 @@ const PurePreviewMessage = ({
             }
             return null;
           })}
+
+          {showViewItinerary && <ViewItineraryButton />}
 
           {!isReadonly && (
             <MessageActions
@@ -287,7 +399,7 @@ export const ThinkingMessage = () => {
       data-testid="message-assistant-loading"
     >
       <div className="flex items-start justify-start gap-3">
-        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+        <div className="-mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
           <div className="animate-pulse">
             <SparklesIcon size={14} />
           </div>

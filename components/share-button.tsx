@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, LinkIcon } from "lucide-react";
+import { CheckIcon, ShareIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,7 @@ export function ShareButton({ chatId, className }: { chatId: string; className?:
 
     await navigator.clipboard.writeText(url);
     setCopied(true);
-    toast.success("Link copied to clipboard");
+    toast({ type: "success", description: "Link copied to clipboard" });
     setTimeout(() => setCopied(false), 2000);
   }, [itinerary]);
 
@@ -41,14 +41,14 @@ export function ShareButton({ chatId, className }: { chatId: string; className?:
           className={cn(className)}
           disabled={copied}
           onClick={handleCopy}
-          size="icon-sm"
+          size="sm"
           type="button"
           variant="outline"
         >
           {copied ? (
-            <CheckIcon className="size-4" />
+            <CheckIcon className="size-3.5" />
           ) : (
-            <LinkIcon className="size-4" />
+            <ShareIcon className="size-3.5" />
           )}
         </Button>
       </TooltipTrigger>

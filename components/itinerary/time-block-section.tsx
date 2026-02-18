@@ -1,6 +1,7 @@
 import { MoonIcon, SunIcon } from "lucide-react";
 import type { ItineraryItem } from "@/lib/db/schema";
 import { ItineraryItemCard } from "./item-card";
+import { AddActivityButton } from "./itinerary-actions";
 
 const TIME_BLOCK_CONFIG = {
   morning: {
@@ -16,9 +17,13 @@ const TIME_BLOCK_CONFIG = {
 export function TimeBlockSection({
   timeBlock,
   items,
+  day,
+  dayNumber,
 }: {
   timeBlock: "morning" | "evening";
   items: ItineraryItem[];
+  day: string;
+  dayNumber: number;
 }) {
   const config = TIME_BLOCK_CONFIG[timeBlock];
   const Icon = config.icon;
@@ -33,7 +38,11 @@ export function TimeBlockSection({
       {items.length > 0 ? (
         <div className="flex flex-col gap-2">
           {items.map((item) => (
-            <ItineraryItemCard item={item} key={item.id} />
+            <ItineraryItemCard
+              dayNumber={dayNumber}
+              item={item}
+              key={item.id}
+            />
           ))}
         </div>
       ) : (
@@ -41,6 +50,12 @@ export function TimeBlockSection({
           No activities yet
         </div>
       )}
+
+      <AddActivityButton
+        day={day}
+        dayNumber={dayNumber}
+        timeBlock={timeBlock}
+      />
     </div>
   );
 }

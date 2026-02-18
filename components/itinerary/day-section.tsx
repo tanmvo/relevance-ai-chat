@@ -41,6 +41,8 @@ export function DaySection({
       <div className="flex flex-col gap-4 md:pl-4">
         {TIME_BLOCKS.map((block) => (
           <TimeBlockSection
+            day={day}
+            dayNumber={dayNumber}
             items={itemsByTimeBlock.get(block) ?? []}
             key={block}
             timeBlock={block}

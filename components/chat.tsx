@@ -189,7 +189,11 @@ export function Chat({
 
   return (
     <>
-      <ChatActionsProvider sendMessage={sendMessage} setActiveTab={setActiveTab}>
+      <ChatActionsProvider
+        sendMessage={sendMessage}
+        setActiveTab={setActiveTab}
+        setInput={setInput}
+      >
         <Tabs
           className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background"
           onValueChange={setActiveTab}

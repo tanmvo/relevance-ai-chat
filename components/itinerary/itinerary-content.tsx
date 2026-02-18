@@ -46,9 +46,11 @@ function getDayList(
 export function ItineraryContent({
   itinerary,
   items,
+  chatId,
 }: {
   itinerary: Itinerary;
   items: ItineraryItem[];
+  chatId?: string;
 }) {
   const hasMetadata =
     itinerary.tripName ||
@@ -65,7 +67,7 @@ export function ItineraryContent({
 
   return (
     <div className="flex flex-col gap-6 p-4 pb-8 md:p-6">
-      {hasMetadata && <HeroSection itinerary={itinerary} />}
+      {hasMetadata && <HeroSection chatId={chatId} itinerary={itinerary} />}
 
       {days.length > 0 ? (
         <div className="flex flex-col gap-8">

@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { SidebarToggle } from "@/components/sidebar-toggle";
 import { useItinerary } from "@/hooks/use-itinerary";
-import { ShareButton } from "./share-button";
 import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
 
 function formatHeaderDateRange(
@@ -68,22 +67,20 @@ function PureChatHeader({
   isReadonly: boolean;
 }) {
   return (
-    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
+    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 pt-4 pb-1 md:px-2">
       <SidebarToggle />
 
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="absolute left-0 right-0 flex justify-center pointer-events-none">
         <TripInfo chatId={chatId} />
       </div>
 
       {!isReadonly && (
         <VisibilitySelector
           chatId={chatId}
-          className="order-1 md:order-2"
+          className="ml-auto"
           selectedVisibilityType={selectedVisibilityType}
         />
       )}
-
-      {!isReadonly && <ShareButton chatId={chatId} className="ml-auto" />}
     </header>
   );
 }

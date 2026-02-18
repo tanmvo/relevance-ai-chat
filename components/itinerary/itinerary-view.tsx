@@ -2,8 +2,8 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useItinerary } from "@/hooks/use-itinerary";
-import { ItineraryContent } from "./itinerary-content";
 import { ItineraryEmptyState } from "./empty-state";
+import { ItineraryContent } from "./itinerary-content";
 
 function ItinerarySkeleton() {
   return (
@@ -43,5 +43,7 @@ export function ItineraryView({ chatId }: { chatId: string }) {
     return <ItineraryEmptyState />;
   }
 
-  return <ItineraryContent itinerary={itinerary} items={items} />;
+  return (
+    <ItineraryContent chatId={chatId} items={items} itinerary={itinerary} />
+  );
 }
