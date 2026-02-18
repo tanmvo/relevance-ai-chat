@@ -2,6 +2,7 @@
 
 > Copy-paste the relevant prompt when starting each step.
 > Each prompt is self-contained — the agent will read the docs and plan before coding.
+> **Always read `@docs/phase-2/instructions.md` first** for the workflow requirements (plan, confidence score, task tracking, phase notes).
 
 ---
 
@@ -11,6 +12,7 @@
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list
@@ -32,6 +34,7 @@ Follow the existing patterns in lib/db/schema.ts and lib/db/queries.ts for the i
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list
@@ -52,6 +55,7 @@ Follow the existing tool pattern in lib/ai/tools/add-activity.ts (factory patter
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list
@@ -74,6 +78,7 @@ Follow the existing patterns: hooks/use-itinerary.ts for SWR hooks, components/i
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list
@@ -95,6 +100,7 @@ Follow the existing pattern in app/(chat)/itinerary/[id]/page.tsx for the public
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list
@@ -117,6 +123,7 @@ Follow the existing tab pattern in components/chat.tsx and the itinerary tab imp
 I'm adding a polls feature to my Holiday Trip Planning Assistant.
 
 Read these docs first:
+- @docs/phase-2/instructions.md — workflow requirements (read this first)
 - @AGENTS.md — project overview and architecture
 - @docs/phase-2/PRD.md — full product requirements for the polls feature
 - @docs/phase-2/tasks.md — the phased task list

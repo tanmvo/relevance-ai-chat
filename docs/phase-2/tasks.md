@@ -25,9 +25,9 @@ Design the poll schema, build CRUD queries, and expose API routes.
 
 Build the `createPoll` tool and update Alfred's prompt with poll awareness.
 
-- [ ] Build `createPoll` tool in `lib/ai/tools/create-poll.ts` — follows existing factory pattern `({ chatId, dataStream })`, Zod input schema (question, options array with label + optional description), execute function creates poll in DB and writes `data-poll-update` event to data stream
-- [ ] Register `createPoll` tool in the chat endpoint (`api/chat/route.ts`)
-- [ ] Update system prompt in `lib/ai/prompts.ts` — add poll suggestion behavior (suggest creating a poll at decision points, never auto-create) and poll result processing behavior (hybrid: auto-update if decisive, ask if ambiguous)
+- [x] Build `createPoll` tool in `lib/ai/tools/create-poll.ts` — follows existing factory pattern `({ chatId, dataStream })`, Zod input schema (question, options array with label + optional description), execute function creates poll in DB and writes `data-poll-update` event to data stream
+- [x] Register `createPoll` tool in the chat endpoint (`api/chat/route.ts`)
+- [x] Update system prompt in `lib/ai/prompts.ts` — add poll suggestion behavior (suggest creating a poll at decision points, never auto-create) and poll result processing behavior (hybrid: auto-update if decisive, ask if ambiguous)
 - [ ] Test tool call end-to-end — verify the agent can create a poll and data persists correctly
 
 ---
