@@ -132,7 +132,7 @@ function SuggestionOption({
         </div>
 
         {suggestion.description && (
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground md:text-sm">
+          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground md:text-sm">
             {suggestion.description}
           </p>
         )}

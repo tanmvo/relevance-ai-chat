@@ -20,7 +20,10 @@ export const presentSuggestions = tool({
             ),
           description: z
             .string()
-            .describe("Brief description with key details")
+            .max(80)
+            .describe(
+              "One short sentence (max 80 chars) summarizing the option, e.g. 'Iconic hilltop shrine with thousands of vermillion torii gates'"
+            )
             .optional(),
           type: z
             .enum([
