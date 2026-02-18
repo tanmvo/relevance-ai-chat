@@ -16,7 +16,8 @@ export type Surface =
   | "vote"
   | "document"
   | "suggestions"
-  | "activate_gateway";
+  | "activate_gateway"
+  | "poll";
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -33,6 +34,7 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   document: "response",
   suggestions: "response",
   activate_gateway: "response",
+  poll: "response",
 };
 
 export class ChatSDKError extends Error {
@@ -111,6 +113,15 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return "You need to sign in to view this document. Please sign in and try again.";
     case "bad_request:document":
       return "The request to create or update the document was invalid. Please check your input and try again.";
+
+    case "not_found:poll":
+      return "The requested poll was not found. Please check the poll ID and try again.";
+    case "forbidden:poll":
+      return "You don't have permission to access this poll.";
+    case "unauthorized:poll":
+      return "You need to sign in to manage polls.";
+    case "bad_request:poll":
+      return "The poll request was invalid. Please check your input and try again.";
 
     default:
       return "Something went wrong. Please try again later.";

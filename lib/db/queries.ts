@@ -30,6 +30,12 @@ import {
   itineraryItem,
   type Itinerary,
   type ItineraryItem,
+  poll,
+  pollOption,
+  pollVote,
+  type Poll,
+  type PollOption,
+  type PollVote,
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
@@ -105,6 +111,26 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
+    const chatPolls = await db
+      .select({ id: poll.id })
+      .from(poll)
+      .where(eq(poll.chatId, id));
+    const chatPollIds = chatPolls.map((p) => p.id);
+    if (chatPollIds.length > 0) {
+      const options = await db
+        .select({ id: pollOption.id })
+        .from(pollOption)
+        .where(inArray(pollOption.pollId, chatPollIds));
+      const optionIds = options.map((o) => o.id);
+      if (optionIds.length > 0) {
+        await db
+          .delete(pollVote)
+          .where(inArray(pollVote.pollOptionId, optionIds));
+      }
+      await db.delete(pollOption).where(inArray(pollOption.pollId, chatPollIds));
+      await db.delete(poll).where(inArray(poll.id, chatPollIds));
+    }
+
     const [existingItinerary] = await db
       .select({ id: itinerary.id })
       .from(itinerary)
@@ -144,6 +170,27 @@ export async function deleteAllChatsByUserId({ userId }: { userId: string }) {
     }
 
     const chatIds = userChats.map((c) => c.id);
+
+    const chatPolls = await db
+      .select({ id: poll.id })
+      .from(poll)
+      .where(inArray(poll.chatId, chatIds));
+    const chatPollIds = chatPolls.map((p) => p.id);
+    if (chatPollIds.length > 0) {
+      const options = await db
+        .select({ id: pollOption.id })
+        .from(pollOption)
+        .where(inArray(pollOption.pollId, chatPollIds));
+      const optionIds = options.map((o) => o.id);
+      if (optionIds.length > 0) {
+        await db
+          .delete(pollVote)
+          .where(inArray(pollVote.pollOptionId, optionIds));
+      }
+      await db.delete(pollOption).where(inArray(pollOption.pollId, chatPollIds));
+      await db.delete(poll).where(inArray(poll.id, chatPollIds));
+    }
+
     const itinerariesForChats = await db
       .select({ id: itinerary.id })
       .from(itinerary)
@@ -851,6 +898,203 @@ export async function setTransport({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to set transport"
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Poll queries
+// ---------------------------------------------------------------------------
+
+export async function createPoll({
+  chatId,
+  itineraryId,
+  question,
+  options,
+}: {
+  chatId: string;
+  itineraryId: string;
+  question: string;
+  options: Array<{ label: string; description?: string }>;
+}): Promise<Poll & { options: PollOption[] }> {
+  try {
+    const [createdPoll] = await db
+      .insert(poll)
+      .values({
+        chatId,
+        itineraryId,
+        question,
+        type: "multiple_choice",
+        status: "active",
+        createdAt: now(),
+        updatedAt: now(),
+      })
+      .returning();
+
+    const createdOptions: PollOption[] = [];
+    for (const [index, opt] of options.entries()) {
+      const [created] = await db
+        .insert(pollOption)
+        .values({
+          pollId: createdPoll.id,
+          label: opt.label,
+          description: opt.description ?? null,
+          sortOrder: index,
+        })
+        .returning();
+      createdOptions.push(created);
+    }
+
+    return { ...createdPoll, options: createdOptions };
+  } catch (error) {
+    const cause = error instanceof Error ? error.message : String(error);
+    throw new ChatSDKError(
+      "bad_request:database",
+      `Failed to create poll: ${cause}`
+    );
+  }
+}
+
+export type PollWithOptionsAndCounts = Poll & {
+  options: Array<PollOption & { voteCount: number }>;
+  totalVotes: number;
+};
+
+export async function getPollsByChatId({
+  chatId,
+}: {
+  chatId: string;
+}): Promise<PollWithOptionsAndCounts[]> {
+  try {
+    const polls = await db
+      .select()
+      .from(poll)
+      .where(eq(poll.chatId, chatId))
+      .orderBy(asc(poll.createdAt));
+
+    const result: PollWithOptionsAndCounts[] = [];
+
+    for (const p of polls) {
+      const options = await db
+        .select()
+        .from(pollOption)
+        .where(eq(pollOption.pollId, p.id))
+        .orderBy(asc(pollOption.sortOrder));
+
+      let totalVotes = 0;
+      const optionsWithCounts: Array<PollOption & { voteCount: number }> = [];
+
+      for (const opt of options) {
+        const [voteCountResult] = await db
+          .select({ count: count(pollVote.id) })
+          .from(pollVote)
+          .where(eq(pollVote.pollOptionId, opt.id));
+        const voteCount = voteCountResult?.count ?? 0;
+        totalVotes += voteCount;
+        optionsWithCounts.push({ ...opt, voteCount });
+      }
+
+      result.push({ ...p, options: optionsWithCounts, totalVotes });
+    }
+
+    return result;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get polls by chat id"
+    );
+  }
+}
+
+export type PollWithFullVotes = Poll & {
+  options: Array<
+    PollOption & {
+      voteCount: number;
+      votes: PollVote[];
+    }
+  >;
+  totalVotes: number;
+};
+
+export async function getPollById({
+  id,
+}: {
+  id: string;
+}): Promise<PollWithFullVotes | null> {
+  try {
+    const [p] = await db.select().from(poll).where(eq(poll.id, id));
+
+    if (!p) {
+      return null;
+    }
+
+    const options = await db
+      .select()
+      .from(pollOption)
+      .where(eq(pollOption.pollId, p.id))
+      .orderBy(asc(pollOption.sortOrder));
+
+    let totalVotes = 0;
+    const optionsWithVotes: Array<
+      PollOption & { voteCount: number; votes: PollVote[] }
+    > = [];
+
+    for (const opt of options) {
+      const votes = await db
+        .select()
+        .from(pollVote)
+        .where(eq(pollVote.pollOptionId, opt.id))
+        .orderBy(asc(pollVote.createdAt));
+      totalVotes += votes.length;
+      optionsWithVotes.push({ ...opt, voteCount: votes.length, votes });
+    }
+
+    return { ...p, options: optionsWithVotes, totalVotes };
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get poll by id"
+    );
+  }
+}
+
+export async function submitPoll({ id }: { id: string }) {
+  try {
+    const [updated] = await db
+      .update(poll)
+      .set({ status: "submitted", updatedAt: now() })
+      .where(eq(poll.id, id))
+      .returning();
+    return updated;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to submit poll"
+    );
+  }
+}
+
+export async function castVote({
+  pollOptionId,
+  voterName,
+}: {
+  pollOptionId: string;
+  voterName: string;
+}): Promise<PollVote> {
+  try {
+    const [created] = await db
+      .insert(pollVote)
+      .values({
+        pollOptionId,
+        voterName,
+        createdAt: now(),
+      })
+      .returning();
+    return created;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to cast vote"
     );
   }
 }

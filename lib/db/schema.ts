@@ -210,3 +210,47 @@ export const itineraryItem = pgTable("ItineraryItem", {
 });
 
 export type ItineraryItem = InferSelectModel<typeof itineraryItem>;
+
+export const poll = pgTable("Poll", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  chatId: uuid("chatId")
+    .notNull()
+    .references(() => chat.id),
+  itineraryId: uuid("itineraryId")
+    .notNull()
+    .references(() => itinerary.id),
+  question: text("question").notNull(),
+  type: varchar("type", { enum: ["multiple_choice"] })
+    .notNull()
+    .default("multiple_choice"),
+  status: varchar("status", { enum: ["active", "submitted"] })
+    .notNull()
+    .default("active"),
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
+});
+
+export type Poll = InferSelectModel<typeof poll>;
+
+export const pollOption = pgTable("PollOption", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  pollId: uuid("pollId")
+    .notNull()
+    .references(() => poll.id),
+  label: text("label").notNull(),
+  description: text("description"),
+  sortOrder: integer("sortOrder").notNull().default(0),
+});
+
+export type PollOption = InferSelectModel<typeof pollOption>;
+
+export const pollVote = pgTable("PollVote", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  pollOptionId: uuid("pollOptionId")
+    .notNull()
+    .references(() => pollOption.id),
+  voterName: text("voterName").notNull(),
+  createdAt: timestamp("createdAt").notNull(),
+});
+
+export type PollVote = InferSelectModel<typeof pollVote>;
