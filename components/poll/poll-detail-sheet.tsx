@@ -18,7 +18,7 @@ export function PollDetailSheet({ pollId, onClose }: PollDetailSheetProps) {
   return (
     <Sheet onOpenChange={(open) => !open && onClose()} open={pollId !== null}>
       <SheetContent
-        className="max-h-[85dvh] overflow-y-auto rounded-t-2xl px-4 pb-8 pt-6"
+        className="max-h-[85dvh] overflow-y-auto rounded-t-2xl px-4 pb-8 pt-12"
         side="bottom"
       >
         <SheetHeader className="sr-only">

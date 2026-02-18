@@ -268,12 +268,13 @@ export function PollSummaryCard({ pollId }: PollSummaryCardProps) {
               <CopyLinkButton pollId={pollId} />
               {chatActions && !showSubmitPanel && (
                 <Button
+                  className="h-7 gap-1.5 px-2.5 text-xs"
                   onClick={() => setShowSubmitPanel(true)}
                   size="sm"
                   type="button"
                   variant="outline"
                 >
-                  <SendIcon className="mr-1.5 size-3.5" />
+                  <SendIcon className="size-3" />
                   Submit to Agent
                 </Button>
               )}

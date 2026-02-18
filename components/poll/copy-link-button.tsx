@@ -28,7 +28,7 @@ export function CopyLinkButton({
 
   return (
     <Button
-      className="gap-2"
+      className="h-7 gap-1.5 px-2.5 text-xs"
       onClick={handleCopy}
       size={size}
       type="button"
@@ -36,12 +36,12 @@ export function CopyLinkButton({
     >
       {copied ? (
         <>
-          <CheckIcon className="size-4" />
+          <CheckIcon className="size-3.5" />
           Copied!
         </>
       ) : (
         <>
-          <CopyIcon className="size-4" />
+          <CopyIcon className="size-3.5" />
           {label}
         </>
       )}

@@ -86,6 +86,39 @@ function getToolDisplayName(part: ToolCallPart): string {
   }
 }
 
+type GroupedItem =
+  | { kind: "part"; part: unknown; index: number }
+  | { kind: "tool-group"; parts: ToolCallPart[]; startIndex: number };
+
+function BetweenStepsSpinner({
+  groupedParts,
+}: {
+  groupedParts: GroupedItem[];
+}) {
+  const lastGroup = groupedParts.at(-1);
+  if (!lastGroup || lastGroup.kind !== "tool-group") {
+    return null;
+  }
+
+  const allDone = lastGroup.parts.every(
+    (p) => p.state === "output-available" || p.state === "output-error"
+  );
+  if (!allDone) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-1 py-1 text-muted-foreground text-sm fade-in animate-in duration-200">
+      <span className="animate-pulse">Thinking</span>
+      <span className="inline-flex">
+        <span className="animate-bounce [animation-delay:0ms]">.</span>
+        <span className="animate-bounce [animation-delay:150ms]">.</span>
+        <span className="animate-bounce [animation-delay:300ms]">.</span>
+      </span>
+    </div>
+  );
+}
+
 const PurePreviewMessage = ({
   addToolApprovalResponse,
   chatId,
@@ -434,6 +467,8 @@ const PurePreviewMessage = ({
             }
             return null;
           })}
+
+          {isLoading && <BetweenStepsSpinner groupedParts={groupedParts} />}
 
           {showViewItinerary && <ViewItineraryButton />}
 
