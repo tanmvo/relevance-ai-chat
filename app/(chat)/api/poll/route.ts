@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
     }
 
     const chat = await getChatById({ id: chatId });
-    if (!chat || chat.userId !== session.user.id) {
+    if (!chat) {
+      return Response.json([]);
+    }
+    if (chat.userId !== session.user.id) {
       return new ChatSDKError("forbidden:poll").toResponse();
     }
 

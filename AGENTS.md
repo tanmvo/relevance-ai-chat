@@ -142,7 +142,7 @@ User types: `guest` (20 msgs/day), `regular` (50 msgs/day). Middleware in `proxy
 
 ### AI Integration
 
-- **Persona:** "Alfred the butler" — concise, task-oriented trip planning assistant. Adapts conversation style based on planning phase (Ask-First → Neutral Facilitator → Proactive Suggestions).
+- **Persona:** "Alfred the butler" — concise, task-oriented trip planning assistant. Adapts conversation style based on planning phase (Trip Basics → Get to Know the Travellers → Neutral Facilitator → Incremental Planning). After establishing metadata, Alfred asks about interests/preferences before suggesting activities, and builds the itinerary one day at a time — never batch-filling multiple days.
 - **Vercel AI Gateway** provides unified access to Anthropic, OpenAI, Google, and xAI models.
 - Models defined in `lib/ai/models.ts`; provider factory in `lib/ai/providers.ts`.
 - System prompts in `lib/ai/prompts.ts` (Alfred persona, conversation style lifecycle, tool usage instructions, trip-oriented title generation).

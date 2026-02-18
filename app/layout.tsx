@@ -79,6 +79,7 @@ export default function RootLayout({
           enableSystem
         >
           <Toaster position="top-center" />
+          {/* @ts-expect-error next-auth beta types not yet updated for React 19 */}
           <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>

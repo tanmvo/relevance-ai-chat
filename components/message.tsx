@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
+import { useItinerary } from "@/hooks/use-itinerary";
 import { useDataStream } from "./data-stream-provider";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
@@ -112,6 +113,7 @@ const PurePreviewMessage = ({
   );
 
   useDataStream();
+  const { itinerary } = useItinerary(chatId);
 
   type MessagePart = NonNullable<typeof message.parts>[number];
   type GroupedItem =
@@ -175,18 +177,40 @@ const PurePreviewMessage = ({
     return result;
   }, [message.parts]);
 
-  const showViewItinerary = useMemo(
-    () =>
-      groupedParts.some(
-        (g) =>
-          g.kind === "tool-group" &&
-          g.parts.some((p) => ITINERARY_TOOL_TYPES.has(p.type)) &&
-          g.parts.every(
-            (p) => p.state === "output-available" || p.state === "output-error"
-          )
-      ),
-    [groupedParts]
-  );
+  const showViewItinerary = useMemo(() => {
+    const completedItineraryGroups = groupedParts.filter(
+      (g) =>
+        g.kind === "tool-group" &&
+        g.parts.some((p) => ITINERARY_TOOL_TYPES.has(p.type)) &&
+        g.parts.every(
+          (p) => p.state === "output-available" || p.state === "output-error"
+        )
+    );
+
+    if (completedItineraryGroups.length === 0) {
+      return false;
+    }
+
+    const hasNonMetadataTool = completedItineraryGroups.some(
+      (g) =>
+        g.kind === "tool-group" &&
+        g.parts.some(
+          (p) => ITINERARY_TOOL_TYPES.has(p.type) && p.type !== "tool-updateTripMetadata"
+        )
+    );
+
+    if (hasNonMetadataTool) {
+      return true;
+    }
+
+    const metadataComplete =
+      Boolean(itinerary?.destination) &&
+      Boolean(itinerary?.startDate) &&
+      Boolean(itinerary?.endDate) &&
+      Boolean(itinerary?.adults);
+
+    return metadataComplete;
+  }, [groupedParts, itinerary]);
 
   return (
     <div

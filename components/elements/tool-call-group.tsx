@@ -8,7 +8,7 @@ import {
   WrenchIcon,
   XCircleIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -49,6 +49,13 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
   ).length;
   const errorCount = parts.filter((p) => p.state === "output-error").length;
   const isAllDone = completedCount + errorCount === parts.length;
+  const [open, setOpen] = useState(!isAllDone);
+
+  useEffect(() => {
+    if (isAllDone) {
+      setOpen(false);
+    }
+  }, [isAllDone]);
 
   let summaryText: string;
   if (isAllDone && errorCount === 0) {
@@ -62,11 +69,12 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
   return (
     <Collapsible
       className="group/tools not-prose w-full"
-      defaultOpen={!isAllDone}
+      open={open}
+      onOpenChange={setOpen}
     >
       <CollapsibleTrigger className="flex w-full items-center gap-2 py-1.5 text-sm transition-colors hover:text-foreground">
         {isAllDone ? (
-          <CheckCircleIcon className="size-4 shrink-0 text-green-600" />
+          <CheckCircleIcon className="size-3 shrink-0 text-green-600" />
         ) : (
           <WrenchIcon className="size-4 shrink-0 animate-pulse text-muted-foreground" />
         )}
@@ -76,10 +84,10 @@ export function ToolCallGroup({ parts, getDisplayName }: ToolCallGroupProps) {
         <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]/tools:rotate-180" />
       </CollapsibleTrigger>
       <CollapsibleContent className="data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1">
-        <div className="ml-2 mt-1 space-y-0.5 border-l border-border pl-3">
+        <div className="ml-2 mt-1 max-h-48 space-y-0.5 overflow-y-auto border-l border-border pl-3">
           {parts.map((part, i) => (
             <div
-              className="flex items-center gap-2 py-0.5 text-sm fade-in animate-in duration-150"
+              className="flex items-center gap-2 py-0.5 text-xs fade-in animate-in duration-150"
               key={part.toolCallId ?? i}
             >
               {stepIcon[part.state] ?? (

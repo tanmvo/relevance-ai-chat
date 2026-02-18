@@ -184,7 +184,6 @@ export function Chat({
     autoResume,
     initialMessages,
     resumeStream,
-    setMessages,
   });
 
   return (

@@ -1,4 +1,15 @@
-import { BedDoubleIcon, BusIcon, MapPinIcon, UtensilsIcon } from "lucide-react";
+"use client";
+
+import {
+  BedDoubleIcon,
+  BusIcon,
+  CheckCircleIcon,
+  MapPinIcon,
+  UtensilsIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ItineraryItem } from "@/lib/db/schema";
 import { EditItemButton } from "./itinerary-actions";
@@ -45,6 +56,7 @@ export function ItineraryItemCard({
   item: ItineraryItem;
   dayNumber: number;
 }) {
+  const [booked, setBooked] = useState(false);
   const config = TYPE_CONFIG[item.type];
   const Icon = config.icon;
 
@@ -54,6 +66,7 @@ export function ItineraryItemCard({
     : { subType: null, displayName: item.name };
 
   const badgeLabel = subType ? `${config.label} — ${subType}` : config.label;
+  const hasPrice = Boolean(item.price);
 
   return (
     <Card className="group shadow-none transition-colors hover:bg-muted/30">
@@ -67,7 +80,15 @@ export function ItineraryItemCard({
             <span className="text-sm font-semibold leading-tight md:text-base">
               {displayName}
             </span>
-            <EditItemButton dayNumber={dayNumber} item={item} />
+            <div className="flex items-center gap-1">
+              {booked && (
+                <Badge className="gap-1 border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400 dark:hover:bg-emerald-950">
+                  <CheckCircleIcon className="size-3" />
+                  Booked
+                </Badge>
+              )}
+              <EditItemButton dayNumber={dayNumber} item={item} />
+            </div>
           </div>
 
           <p className="text-xs text-muted-foreground">
@@ -79,6 +100,18 @@ export function ItineraryItemCard({
             <p className="line-clamp-2 text-xs text-muted-foreground md:text-sm">
               {item.description}
             </p>
+          )}
+
+          {hasPrice && !booked && (
+            <Button
+              className="mt-1 h-7 w-fit gap-1.5 px-3 text-xs"
+              onClick={() => setBooked(true)}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              Book now
+            </Button>
           )}
         </div>
       </CardContent>
