@@ -1,13 +1,16 @@
 "use client";
 import type { UseChatHelpers } from "@ai-sdk/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
-import { Tool, ToolContent, ToolHeader } from "./elements/tool";
+import {
+  ToolCallGroup,
+  type ToolCallPart,
+} from "./elements/tool-call-group";
 import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
@@ -52,6 +55,49 @@ const PurePreviewMessage = ({
   );
 
   useDataStream();
+
+  type MessagePart = NonNullable<typeof message.parts>[number];
+  type GroupedItem =
+    | { kind: "part"; part: MessagePart; index: number }
+    | { kind: "tool-group"; parts: ToolCallPart[]; startIndex: number };
+
+  const groupedParts = useMemo((): GroupedItem[] => {
+    if (!message.parts) {
+      return [];
+    }
+
+    const result: GroupedItem[] = [];
+    let toolBuffer: ToolCallPart[] = [];
+    let toolStartIndex = 0;
+
+    const flushTools = () => {
+      if (toolBuffer.length > 0) {
+        result.push({
+          kind: "tool-group",
+          parts: toolBuffer,
+          startIndex: toolStartIndex,
+        });
+        toolBuffer = [];
+      }
+    };
+
+    const customToolTypes = new Set(["tool-createPoll"]);
+
+    message.parts.forEach((part, index) => {
+      if (part.type.startsWith("tool-") && !customToolTypes.has(part.type)) {
+        if (toolBuffer.length === 0) {
+          toolStartIndex = index;
+        }
+        toolBuffer.push(part as unknown as ToolCallPart);
+      } else {
+        flushTools();
+        result.push({ kind: "part", part, index });
+      }
+    });
+
+    flushTools();
+    return result;
+  }, [message.parts]);
 
   return (
     <div
@@ -105,7 +151,20 @@ const PurePreviewMessage = ({
             </div>
           )}
 
-          {message.parts?.map((part, index) => {
+          {groupedParts.map((group) => {
+            if (group.kind === "tool-group") {
+              return (
+                <ToolCallGroup
+                  getDisplayName={(type) =>
+                    toolDisplayNames[type] ?? type.replace("tool-", "")
+                  }
+                  key={`tool-group-${group.startIndex}`}
+                  parts={group.parts}
+                />
+              );
+            }
+
+            const { part, index } = group;
             const { type } = part;
             const key = `message-${message.id}-part-${index}`;
 
@@ -199,50 +258,6 @@ const PurePreviewMessage = ({
                 </div>
               );
             }
-
-            if (type.startsWith("tool-")) {
-              const toolPart = part as {
-                type: string;
-                toolCallId: string;
-                state: string;
-                input?: unknown;
-                output?: unknown;
-                errorText?: string;
-              };
-              const displayName =
-                toolDisplayNames[type] ?? type.replace("tool-", "");
-
-              return (
-                <div
-                  className="w-full"
-                  key={toolPart.toolCallId ?? key}
-                >
-                  <Tool defaultOpen={false}>
-                    <ToolHeader
-                      state={toolPart.state as "input-streaming" | "input-available" | "output-available" | "output-error"}
-                      type={displayName}
-                    />
-                    <ToolContent>
-                      {toolPart.state === "output-available" &&
-                        toolPart.output && (
-                          <div className="px-4 py-3 text-sm text-muted-foreground">
-                            {typeof toolPart.output === "string"
-                              ? toolPart.output
-                              : JSON.stringify(toolPart.output, null, 2)}
-                          </div>
-                        )}
-                      {toolPart.state === "output-error" &&
-                        toolPart.errorText && (
-                          <div className="px-4 py-3 text-sm text-destructive">
-                            {toolPart.errorText}
-                          </div>
-                        )}
-                    </ToolContent>
-                  </Tool>
-                </div>
-              );
-            }
-
             return null;
           })}
 
