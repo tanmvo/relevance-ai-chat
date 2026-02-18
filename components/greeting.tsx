@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 
-import { TrippityIcon } from "@/components/icons";
+import { ButlerIcon } from "@/components/icons";
 
 export const Greeting = () => {
   return (
@@ -15,7 +15,7 @@ export const Greeting = () => {
         initial={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.5 }}
       >
-        <TrippityIcon size={28} />
+        <ButlerIcon size={28} />
         Hello,
       </motion.div>
       <motion.div

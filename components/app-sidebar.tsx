@@ -7,7 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { PlusIcon, TrashIcon, TrippityIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon, ButlerIcon } from "@/components/icons";
 import {
   getChatHistoryPaginationKey,
   SidebarHistory,
@@ -72,8 +72,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 }}
               >
                 <span className="flex cursor-pointer items-center gap-2 rounded-md px-2 font-semibold text-lg hover:bg-muted">
-                  <TrippityIcon size={20} />
-                  Trippity
+                  <ButlerIcon size={20} />
+                  Butler
                 </span>
               </Link>
               <div className="flex flex-row gap-1">

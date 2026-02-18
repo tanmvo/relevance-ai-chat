@@ -9,7 +9,7 @@ import { useDataStream } from "./data-stream-provider";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
 import { ToolCallGroup, type ToolCallPart } from "./elements/tool-call-group";
-import { TrippityIcon } from "./icons";
+import { ButlerIcon } from "./icons";
 import { ViewItineraryButton } from "./itinerary/itinerary-actions";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
@@ -260,7 +260,7 @@ const PurePreviewMessage = ({
       >
         {message.role === "assistant" && (
           <div className="-mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-            <TrippityIcon size={20} />
+            <ButlerIcon size={20} />
           </div>
         )}
 
@@ -500,7 +500,7 @@ export const ThinkingMessage = () => {
       <div className="flex items-start justify-start gap-3">
         <div className="-mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
           <div className="animate-pulse">
-            <TrippityIcon size={20} />
+            <ButlerIcon size={20} />
           </div>
         </div>
 
